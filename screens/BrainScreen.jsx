@@ -4,7 +4,7 @@ import PuzzleBackground from '../components/BackgroundSecon';
 import FloatingMenuBar from '../components/FloatingMenuBar';
 import ProfileButton from '../components/ProfileButton';
 import PromotionSlider from '../components/PromotionSlider';
-import { promotions } from '../utils/promotionsData'; 
+import { promotions } from '../utils/promotionsData';
 
 export default function GymMentalScreen({ navigation }) {
     const menuItems = [
