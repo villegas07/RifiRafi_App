@@ -1,16 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 
 export default function FloatingMenuBar({ menuItems }) {
     const navigation = useNavigation();
-    const [selectedItem, setSelectedItem] = useState('Home');
+    const route = useRoute();
+    const [selectedItem, setSelectedItem] = useState(route.name);
 
-    // Verifica si menuItems no está definido o está vacío
+    // Actualiza el ítem seleccionado cuando cambia la pantalla activa
+    useFocusEffect(
+        useCallback(() => {
+            setSelectedItem(route.name);
+        }, [route.name])
+    );
+
     if (!menuItems || menuItems.length === 0) {
         console.error('menuItems no está definido o está vacío');
-        return null; // Evita renderizar si no hay elementos
+        return null;
     }
 
     return (
@@ -19,13 +26,10 @@ export default function FloatingMenuBar({ menuItems }) {
                 {menuItems.map((item, index) => (
                     <TouchableOpacity
                         key={index}
-                        onPress={() => {
-                            setSelectedItem(item.screen); // Actualiza el estado al presionar
-                            navigation.navigate(item.screen); // Navega a la pantalla correspondiente
-                        }}
+                        onPress={() => navigation.navigate(item.screen)}
                         style={[
                             styles.button,
-                            selectedItem === item.screen && styles.selectedButton, // Aplica el estilo si está seleccionado
+                            selectedItem === item.screen && styles.selectedButton,
                         ]}
                     >
                         {item.iconType === 'image' ? (
@@ -49,6 +53,7 @@ export default function FloatingMenuBar({ menuItems }) {
         </View>
     );
 }
+
 
 const styles = StyleSheet.create({
     menuContainer: {

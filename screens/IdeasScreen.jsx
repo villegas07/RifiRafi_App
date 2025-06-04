@@ -132,7 +132,7 @@ const styles = StyleSheet.create({
     firstPlace: {
         alignItems: 'center',
         justifyContent: 'flex-start',
-        width: width * 0.25,
+        width: width * 0.26,
         height: 320,
         marginHorizontal: 5,
         backgroundColor: '#FFD700',
@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
     secondPlace: {
         alignItems: 'center',
         justifyContent: 'flex-start',
-        width: width * 0.25,
+        width: width * 0.26,
         height: 250,
         marginHorizontal: 5,
         backgroundColor: '#C0C0C0',
@@ -152,7 +152,7 @@ const styles = StyleSheet.create({
     thirdPlace: {
         alignItems: 'center',
         justifyContent: 'flex-start',
-        width: width * 0.25,
+        width: width * 0.26,
         height: 220,
         marginHorizontal: 5,
         backgroundColor: '#CD7F32',
