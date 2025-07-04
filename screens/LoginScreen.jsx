@@ -11,9 +11,38 @@ import ButtonGradient from "../components/ButtonGradient"; // Ruta relativa al c
 import Icon from "../assets/logo0.png"; // Ruta relativa al ícono
 import { Svg, Path } from "react-native-svg";
 import { AntDesign } from "@expo/vector-icons";
+import axios from 'axios';
 
 export default function LoginScreen({ navigation }) {
-    const [passwordVisible, setPasswordVisible] = useState(false); // Estado para mostrar/ocultar contraseña
+    const [passwordVisible, setPasswordVisible] = useState(false);
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+
+    const handleLogin = async () => {
+        try {
+            const response = await axios.post(
+                'https://rifi-rafi.onrender.com/api/auth/login',
+                {
+                    identifier: email,
+                    password: password
+                },
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-lang': 'es'
+                    }
+                }
+            );
+            
+            console.log("Login exitoso:", response.data);
+            // Navegar a la siguiente pantalla si es necesario
+            // navigation.navigate("MainScreen");
+            
+        } catch (error) {
+            console.error("Error en login:", error);
+            alert("Error al iniciar sesión. Verifique sus credenciales");
+        }
+    };
 
     const handleLoginWithGoogle = () => {
         alert("Inicio de sesión con Google no implementado");
@@ -39,14 +68,24 @@ export default function LoginScreen({ navigation }) {
             <View style={styles.contentContainer}>
                 <Image source={Icon} style={styles.icon} />
                 <Text style={styles.subTitle}>Iniciar Sesión</Text>
-                <TextInput placeholder="Email@email.com" style={styles.TexInput} />
+                
+                {/* Email Input */}
+                <TextInput 
+                    placeholder="Email@email.com" 
+                    style={styles.TexInput}
+                    value={email}
+                    onChangeText={setEmail}
+                    keyboardType="email-address"
+                />
 
-                {/* TextInput de Contraseña con "ojito" */}
+                {/* Password Input */}
                 <View style={styles.passwordContainer}>
                     <TextInput
                         placeholder="Password"
                         style={styles.passwordInput}
                         secureTextEntry={!passwordVisible}
+                        value={password}
+                        onChangeText={setPassword}
                     />
                     <TouchableOpacity
                         onPress={() => setPasswordVisible(!passwordVisible)}
@@ -66,7 +105,12 @@ export default function LoginScreen({ navigation }) {
                 >
                     ¿Olvidaste tu contraseña?
                 </Text>
-                <ButtonGradient />
+                
+                {/* Botón de login - Conectado a handleLogin */}
+                <TouchableOpacity onPress={handleLogin}>
+                    <ButtonGradient />
+                </TouchableOpacity>
+                
                 <Text
                     style={[styles.texto, { color: "#5B5F64FF" }]}
                     onPress={() => navigation.navigate("RegisterScreen")}
@@ -112,6 +156,7 @@ export default function LoginScreen({ navigation }) {
     );
 }
 
+// Componentes Svg y estilos (sin cambios)
 function SvgTop({ width = 200, height = 200 }) {
     return (
         <Svg
@@ -200,11 +245,11 @@ const styles = StyleSheet.create({
         width: "80%",
         flexDirection: "row",
         alignItems: "center",
-        justifyContent: "flex-start", // Asegura que los íconos y texto se alineen correctamente
+        justifyContent: "flex-start",
         paddingVertical: 12,
         borderRadius: 30,
         marginTop: 15,
-        paddingLeft: 15, // Añade espacio para que el contenido no quede pegado al borde
+        paddingLeft: 15,
         elevation: 5,
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 2 },
@@ -224,46 +269,32 @@ const styles = StyleSheet.create({
         color: "white",
         fontSize: 16,
         fontWeight: "bold",
-        marginLeft: 20, // Separa el texto del ícono
+        marginLeft: 20,
     },
     socialIcon: {
         width: 22,
         height: 22,
-        marginRight: 10, // Espaciado entre el ícono y el texto
+        marginRight: 10,
     },
     passwordContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#eae6e6",
-    borderRadius: 25,
-    backgroundColor: "white",
-    paddingHorizontal: 15,
-    marginTop: 20,
-    width: "100%",
-    height: 50,
-},
-passwordContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#eae6e6",
-    borderRadius: 25,
-    backgroundColor: "white",
-    paddingHorizontal: 15,
-    marginTop: 20,
-    width: "80%",
-    height: 50,
-},
-passwordInput: {
-    flex: 1,
-    height: "100%",
-    fontSize: 16,
-    color: "#333",
-},
-eyeIcon: {
-    marginLeft: 10,
-},
-
+        flexDirection: "row",
+        alignItems: "center",
+        borderWidth: 1,
+        borderColor: "#eae6e6",
+        borderRadius: 25,
+        backgroundColor: "white",
+        paddingHorizontal: 15,
+        marginTop: 20,
+        width: "80%",
+        height: 50,
+    },
+    passwordInput: {
+        flex: 1,
+        height: "100%",
+        fontSize: 16,
+        color: "#333",
+    },
+    eyeIcon: {
+        marginLeft: 10,
+    },
 });
-

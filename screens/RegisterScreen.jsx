@@ -8,56 +8,57 @@ import {
     ScrollView,
     Platform,
     TouchableOpacity,
+    ActivityIndicator,
+    Alert,
 } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import ButtonGradient from "../components/ButtonGradient"; // Ruta relativa al componente
-import CustomDropdown from "../components/CustomDropdown"; // Componente personalizado
-import Icon from "../assets/logo0.png"; // Ruta relativa al ícono
+import ButtonGradient from "../components/ButtonGradient";
+import CustomDropdown from "../components/CustomDropdown";
+import Icon from "../assets/logo0.png";
 import CustomCheckBox from "../components/CustomCheckBox";
 import PolicyModal from "../components/PolicyModal";
 import { Svg, Path } from "react-native-svg";
-
+import axios from 'axios';
 
 export default function RegisterScreen({ navigation }) {
+    // Estados para campos del formulario
+    const [firstName, setFirstName] = useState("");
+    const [lastName, setLastName] = useState("");
+    const [username, setUsername] = useState("");
+    const [displayName, setDisplayName] = useState("");
+    const [documentNumber, setDocumentNumber] = useState("");
+    const [phoneNumber, setPhoneNumber] = useState("");
+    const [email, setEmail] = useState("");
+
+    // Estados para UI y control
+    const [isLoading, setIsLoading] = useState(false);
+    const [errorMessage, setErrorMessage] = useState("");
     const [isPolicyModalVisible, setIsPolicyModalVisible] = useState(false);
     const [isPolicyChecked, setIsPolicyChecked] = useState(false);
 
+    // Estados para fecha y dropdowns - MODIFICADOS: valores iniciales no vacíos
     const [birthDate, setBirthDate] = useState(new Date());
     const [showDatePicker, setShowDatePicker] = useState(false);
+    // Valor inicial para dropdowns - ahora tiene un valor por defecto
+    const [selectedCountry, setSelectedCountry] = useState("Argentina"); 
+    const [selectedDocumentType, setSelectedDocumentType] = useState("CC"); // Valor por defecto
 
-    const [selectedCountry, setSelectedCountry] = useState("");
-    const [selectedDocumentType, setSelectedDocumentType] = useState("");
-
+    // Estados para contraseña
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [passwordVisible, setPasswordVisible] = useState(false);
     const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
 
+    // Validación de coincidencia de contraseñas
     const isPasswordMatch = password === confirmPassword;
-
 
     // Opciones para el campo País de Origen
     const countries = [
-        "Argentina",
-        "Bolivia",
-        "Brasil",
-        "Chile",
-        "Colombia",
-        "Costa Rica",
-        "Cuba",
-        "Ecuador",
-        "El Salvador",
-        "Guatemala",
-        "Honduras",
-        "México",
-        "Nicaragua",
-        "Panamá",
-        "Paraguay",
-        "Perú",
-        "República Dominicana",
-        "Uruguay",
-        "Venezuela",
+        "Argentina", "Bolivia", "Brasil", "Chile", "Colombia",
+        "Costa Rica", "Cuba", "Ecuador", "El Salvador", "Guatemala",
+        "Honduras", "México", "Nicaragua", "Panamá", "Paraguay",
+        "Perú", "República Dominicana", "Uruguay", "Venezuela"
     ].map((country) => ({ label: country, value: country }));
 
     // Opciones para el Tipo de Documento
@@ -66,6 +67,86 @@ export default function RegisterScreen({ navigation }) {
         { label: "Cédula de Extranjería", value: "CE" },
         { label: "Pasaporte", value: "Pasaporte" },
     ];
+
+    // Función para manejar el registro - MODIFICADA
+    const handleSubmit = async () => {
+        console.log("Valores de dropdowns:", { selectedCountry, selectedDocumentType });
+
+        // Validaciones básicas
+        if (!firstName || !lastName || !username || !email || !password) {
+            setErrorMessage("Por favor complete todos los campos obligatorios");
+            return;
+        }
+
+        if (!isPasswordMatch) {
+            setErrorMessage("Las contraseñas no coinciden");
+            return;
+        }
+
+        if (!isPolicyChecked) {
+            setErrorMessage("Debe aceptar las políticas de la app");
+            return;
+        }
+
+        // Verificación más explícita - MODIFICADA
+        if (!selectedCountry || selectedCountry === "" ||
+            !selectedDocumentType || selectedDocumentType === "") {
+            setErrorMessage("Seleccione país y tipo de documento");
+            return;
+        }
+
+        // Preparar datos para la API
+        const apiData = {
+            username,
+            displayName,
+            firstName,
+            lastName,
+            country: selectedCountry,
+            dniType: selectedDocumentType,
+            dniNumber: documentNumber,
+            phoneNumber,
+            email,
+            password,
+        };
+
+        setIsLoading(true);
+        setErrorMessage("");
+
+        try {
+            // Realizar la petición con Axios
+            const response = await axios.post(
+                'https://rifi-rafi.onrender.com/api/auth/register',
+                apiData
+            );
+
+            // Éxito
+            Alert.alert(
+                "Registro exitoso", 
+                "Tu cuenta ha sido creada correctamente",
+                [
+                    { 
+                        text: "OK", 
+                        onPress: () => {
+                            // Limpiar formulario o navegar a otra pantalla
+                            navigation.navigate("Login");
+                        }
+                    }
+                ]
+            );
+        } catch (error) {
+            // Manejar errores
+            console.error("Error en el registro:", error);
+
+            // Extraer mensaje de error del backend si existe
+            const errorMsg = error.response?.data?.message ||
+                            error.response?.data?.error ||
+                            "Error al registrar. Por favor intente de nuevo";
+
+            setErrorMessage(errorMsg);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     return (
         <View style={styles.container}>
@@ -80,8 +161,24 @@ export default function RegisterScreen({ navigation }) {
                 <Image source={Icon} style={styles.icon} />
                 <Text style={styles.subTitle}>Regístrate</Text>
 
-                <TextInput placeholder="Nombres" style={styles.TexInput} />
-                <TextInput placeholder="Apellidos" style={styles.TexInput} />
+                {/* Mensaje de error */}
+                {errorMessage ? (
+                    <Text style={styles.errorText}>{errorMessage}</Text>
+                ) : null}
+
+                {/* Campos del formulario */}
+                <TextInput
+                    placeholder="Nombres"
+                    style={styles.TexInput}
+                    value={firstName}
+                    onChangeText={setFirstName}
+                />
+                <TextInput
+                    placeholder="Apellidos"
+                    style={styles.TexInput}
+                    value={lastName}
+                    onChangeText={setLastName}
+                />
 
                 {/* Fecha de Nacimiento */}
                 <View style={styles.dateRow}>
@@ -102,33 +199,65 @@ export default function RegisterScreen({ navigation }) {
                             setShowDatePicker(false);
                             if (selectedDate) setBirthDate(selectedDate);
                         }}
-                        maximumDate={new Date()} // Limitar hasta la fecha actual
+                        maximumDate={new Date()}
                     />
                 )}
 
-
-                {/* País de Origen */}
+                {/* País de Origen - MODIFICADO */}
                 <CustomDropdown
                     data={countries}
                     placeholder="País de Origen"
-                    onChange={(item) => setSelectedCountry(item.value)} // Corregido
+                    onChange={(item) => {
+                        // Asegurar que actualiza correctamente el estado
+                        setSelectedCountry(item.value || item.label);
+                    }}
+                    value={selectedCountry}
                 />
 
-                {/* Tipo de Documento */}
+                {/* Tipo de Documento - MODIFICADO */}
                 <CustomDropdown
                     data={documentTypes}
                     placeholder="Tipo de Documento"
-                    onChange={(item) => setSelectedDocumentType(item.value)} // Corregido
+                    onChange={(item) => {
+                        // Asegurar que actualiza correctamente el estado
+                        setSelectedDocumentType(item.value || item.label);
+                    }}
+                    value={selectedDocumentType}
                 />
 
-                <TextInput placeholder="N° Documento" style={styles.TexInput} keyboardType="numeric" />
+                <TextInput
+                    placeholder="N° Documento"
+                    style={styles.TexInput}
+                    keyboardType="numeric"
+                    value={documentNumber}
+                    onChangeText={setDocumentNumber}
+                />
                 <TextInput
                     placeholder="Teléfono"
                     style={styles.TexInput}
                     keyboardType="numeric"
+                    value={phoneNumber}
+                    onChangeText={setPhoneNumber}
                 />
-                <TextInput placeholder="Correo Electrónico" style={styles.TexInput} />
-                <TextInput placeholder="Nombre de Usuario" style={styles.TexInput} />
+                <TextInput
+                    placeholder="Correo Electrónico"
+                    style={styles.TexInput}
+                    keyboardType="email-address"
+                    value={email}
+                    onChangeText={setEmail}
+                />
+                <TextInput
+                    placeholder="Nombre de Usuario"
+                    style={styles.TexInput}
+                    value={username}
+                    onChangeText={setUsername}
+                />
+                <TextInput
+                    placeholder="Nombre a mostrar"
+                    style={styles.TexInput}
+                    value={displayName}
+                    onChangeText={setDisplayName}
+                />
 
                 {/* Contraseña */}
                 <View style={{ position: "relative", width: "100%" }}>
@@ -136,11 +265,11 @@ export default function RegisterScreen({ navigation }) {
                         placeholder="Contraseña"
                         style={[
                             styles.TexInput,
-                            password && !isPasswordMatch && { borderColor: "red" }, // Marca en rojo si no coinciden
+                            password && !isPasswordMatch && { borderColor: "red" },
                         ]}
                         secureTextEntry={!passwordVisible}
                         value={password}
-                        onChangeText={(text) => setPassword(text)}
+                        onChangeText={setPassword}
                     />
                     <TouchableOpacity
                         style={styles.eyeButton}
@@ -160,11 +289,11 @@ export default function RegisterScreen({ navigation }) {
                         placeholder="Confirmar Contraseña"
                         style={[
                             styles.TexInput,
-                            confirmPassword && !isPasswordMatch && { borderColor: "red" }, // Marca en rojo si no coinciden
+                            confirmPassword && !isPasswordMatch && { borderColor: "red" },
                         ]}
                         secureTextEntry={!confirmPasswordVisible}
                         value={confirmPassword}
-                        onChangeText={(text) => setConfirmPassword(text)}
+                        onChangeText={setConfirmPassword}
                     />
                     <TouchableOpacity
                         style={styles.eyeButton}
@@ -177,7 +306,6 @@ export default function RegisterScreen({ navigation }) {
                         />
                     </TouchableOpacity>
                 </View>
-
 
                 <CustomCheckBox
                     label={
@@ -195,32 +323,39 @@ export default function RegisterScreen({ navigation }) {
                     onToggle={(isChecked) => setIsPolicyChecked(isChecked)}
                 />
 
-
                 <PolicyModal
                     visible={isPolicyModalVisible}
-                    onClose={() => setIsPolicyModalVisible(false)} // Cierra el modal sin marcar el checkbox
+                    onClose={() => setIsPolicyModalVisible(false)}
                     onAccept={() => {
-                        setIsPolicyChecked(true); // Marca el checkbox al aceptar
-                        setIsPolicyModalVisible(false); // Cierra el modal
+                        setIsPolicyChecked(true);
+                        setIsPolicyModalVisible(false);
                     }}
                 />
 
-
+                {/* Botón de registro con loading state */}
                 <TouchableOpacity
                     style={[
                         styles.registerButton,
-                        { backgroundColor: isPolicyChecked ? "#0FAC39" : "#ccc" },
+                        {
+                            backgroundColor: isPolicyChecked ? "#0FAC39" : "#ccc",
+                            opacity: isLoading ? 0.7 : 1
+                        },
                     ]}
-                    disabled={!isPolicyChecked}
-                    onPress={() => alert("Registro completado")}
+                    disabled={!isPolicyChecked || isLoading}
+                    onPress={handleSubmit}
                 >
-                    <Text style={styles.registerButtonText}>Terminar Registro</Text>
+                    {isLoading ? (
+                        <ActivityIndicator color="#fff" />
+                    ) : (
+                        <Text style={styles.registerButtonText}>Terminar Registro</Text>
+                    )}
                 </TouchableOpacity>
             </ScrollView>
         </View>
     );
 }
 
+// Componentes Svg y estilos (sin cambios)
 function SvgTop({ width = 200, height = 200 }) {
     return (
         <Svg
@@ -325,7 +460,6 @@ const styles = StyleSheet.create({
         paddingHorizontal: 15,
         marginLeft: 10,
     },
-
     link: {
         color: "#0FAC39",
         textDecorationLine: "underline",
@@ -347,5 +481,10 @@ const styles = StyleSheet.create({
         top: 35,
         zIndex: 1,
     },
-    
+    errorText: {
+        color: "red",
+        marginVertical: 10,
+        textAlign: "center",
+        width: "100%",
+    }
 });
