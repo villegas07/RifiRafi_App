@@ -51,21 +51,17 @@ Android (Google Play)
 iOS (App Store)
 
 🚀 Instalación y ejecución local
-```bash
+
 ## npm install -g expo-cli
 1. Clona el repositorio
-bash
-Copiar código
 ---
 git clone https://github.com/villegas07/RifiRafi_App.git
 cd RifiRafi_App
 
 2. Instala las dependencias del proyecto
-bash
-Copiar código
 npm install
 
 3. Inicia el servidor de desarrollo con Expo
-bash
-Copiar código
 npm start
+
+```bash
