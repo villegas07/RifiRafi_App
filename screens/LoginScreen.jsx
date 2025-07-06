@@ -6,41 +6,96 @@ import {
     TextInput,
     Image,
     TouchableOpacity,
+    ActivityIndicator,
 } from "react-native";
-import ButtonGradient from "../components/ButtonGradient"; // Ruta relativa al componente
-import Icon from "../assets/logo0.png"; // Ruta relativa al ícono
+import ButtonGradient from "../components/ButtonGradient";
+import Icon from "../assets/logo0.png";
 import { Svg, Path } from "react-native-svg";
 import { AntDesign } from "@expo/vector-icons";
 import axios from 'axios';
+import { useNavigation } from '@react-navigation/native';
 
 export default function LoginScreen({ navigation }) {
     const [passwordVisible, setPasswordVisible] = useState(false);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
+    const [errorMessage, setErrorMessage] = useState("");
 
     const handleLogin = async () => {
+        if (!email || !password) {
+            setErrorMessage("Por favor complete todos los campos");
+            return;
+        }
+
+        if (isLoading) return;
+
+        setIsLoading(true);
+        setErrorMessage("");
+
+        const config = {
+            headers: {
+                'Content-Type': 'application/json',
+                'x-lang': 'es',
+                'Accept': 'application/json'
+            },
+            timeout: 8000
+        };
+
+        const payload = {
+            identifier: email.trim(),
+            password: password
+        };
+
+        const startTime = Date.now();
+
         try {
             const response = await axios.post(
                 'https://rifi-rafi.onrender.com/api/auth/login',
-                {
-                    identifier: email,
-                    password: password
-                },
-                {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'x-lang': 'es'
-                    }
-                }
+                payload,
+                config
             );
-            
-            console.log("Login exitoso:", response.data);
-            // Navegar a la siguiente pantalla si es necesario
-            // navigation.navigate("MainScreen");
-            
+
+            const responseTime = Date.now() - startTime;
+            console.log("Tiempo de respuesta:", responseTime, "ms");
+
+            if (response.status === 200 && response.data) {
+                console.log("Login exitoso:", response.data);
+                navigation.navigate("Home");
+            } else {
+                setErrorMessage("Respuesta inesperada del servidor");
+            }
+
         } catch (error) {
-            console.error("Error en login:", error);
-            alert("Error al iniciar sesión. Verifique sus credenciales");
+            let serverMessage = error.response?.data?.message;
+
+            if (error.code === 'ECONNABORTED') {
+                setErrorMessage("Tiempo de espera agotado. Intenta de nuevo.");
+            } else if (error.response) {
+                const status = error.response.status;
+
+                if (status === 401) {
+                    setErrorMessage("Credenciales inválidas.");
+                } else if (status === 403 && serverMessage) {
+                    setErrorMessage(serverMessage); // Ej: cuenta no verificada
+                } else if (status === 500) {
+                    setErrorMessage("Error interno del servidor. Intenta más tarde.");
+                } else if (serverMessage) {
+                    setErrorMessage(serverMessage);
+                } else {
+                    setErrorMessage("Error desconocido al iniciar sesión.");
+                }
+            } else {
+                setErrorMessage("Error de red o servidor no disponible.");
+            }
+
+            console.error("Error detallado:", {
+                message: error.message,
+                code: error.code,
+                response: error.response?.data,
+            });
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -58,27 +113,23 @@ export default function LoginScreen({ navigation }) {
 
     return (
         <View style={styles.container}>
-            {/* Contenedor de fondo */}
             <View style={styles.backgroundContainer}>
                 <SvgTop width={200} height={200} />
                 <SvgBottom width={200} height={200} />
             </View>
 
-            {/* Contenido principal */}
             <View style={styles.contentContainer}>
                 <Image source={Icon} style={styles.icon} />
                 <Text style={styles.subTitle}>Iniciar Sesión</Text>
-                
-                {/* Email Input */}
-                <TextInput 
-                    placeholder="Email@email.com" 
+
+                <TextInput
+                    placeholder="Correo Electrónico"
                     style={styles.TexInput}
                     value={email}
                     onChangeText={setEmail}
                     keyboardType="email-address"
                 />
 
-                {/* Password Input */}
                 <View style={styles.passwordContainer}>
                     <TextInput
                         placeholder="Password"
@@ -99,18 +150,29 @@ export default function LoginScreen({ navigation }) {
                     </TouchableOpacity>
                 </View>
 
+                {errorMessage ? (
+                    <Text style={styles.errorText}>{errorMessage}</Text>
+                ) : null}
+
                 <Text
                     style={[styles.texto, { color: "#5B5F64FF" }]}
                     onPress={() => navigation.navigate("ForgotYourPasswordScreen")}
                 >
                     ¿Olvidaste tu contraseña?
                 </Text>
-                
-                {/* Botón de login - Conectado a handleLogin */}
-                <TouchableOpacity onPress={handleLogin}>
-                    <ButtonGradient />
+
+                <TouchableOpacity 
+                    onPress={handleLogin}
+                    disabled={isLoading}
+                    style={styles.loginButton}
+                >
+                    {isLoading ? (
+                        <ActivityIndicator color="#fff" />
+                    ) : (
+                        <ButtonGradient />
+                    )}
                 </TouchableOpacity>
-                
+
                 <Text
                     style={[styles.texto, { color: "#5B5F64FF" }]}
                     onPress={() => navigation.navigate("RegisterScreen")}
@@ -118,7 +180,6 @@ export default function LoginScreen({ navigation }) {
                     No tengo una cuenta
                 </Text>
 
-                {/* Botones de inicio de sesión con otras plataformas */}
                 <TouchableOpacity
                     style={[styles.socialButton, styles.facebookButton]}
                     onPress={handleLoginWithFacebook}
@@ -297,4 +358,15 @@ const styles = StyleSheet.create({
     eyeIcon: {
         marginLeft: 10,
     },
+    loginButton: {
+        marginTop: 3,
+        alignItems: "center",
+        width: "80%",
+    },
+    errorText: {
+        color: "red",
+        marginVertical: 10,
+        textAlign: "center",
+        width: "100%",
+    }
 });
