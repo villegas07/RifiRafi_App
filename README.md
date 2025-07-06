@@ -104,7 +104,11 @@ Luego, abre un Pull Request desde GitHub.
 ---
 
 ## 📄 Licencia
-- Este proyecto está bajo la licencia MIT. Puedes usarlo, modificarlo y distribuirlo libremente.
+© 2025 Brayan Villegas. Todos los derechos reservados.
+
+- Este software es propiedad exclusiva del autor. No se permite su copia, redistribución, modificación ni uso con fines comerciales sin autorización explícita por escrito.
+- Queda prohibido publicar o distribuir el código fuente o cualquier parte del sistema sin el consentimiento del propietario.
+- Para licencias empresariales, soporte o colaboraciones, por favor contactar al autor.
 
 👨‍💻 Autor
 Brayan Villegas
