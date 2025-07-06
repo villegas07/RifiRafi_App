@@ -44,24 +44,69 @@ Los jugadores se ordenan automáticamente en un ranking basado en:
 - Tener instalado [Node.js](https://nodejs.org/) (versión recomendada: LTS)
 - Instalar Expo CLI globalmente:
 
-  Descargar Expo Go en tu dispositivo móvil:
+```bash
+npm install -g expo-cli
+```
+## Descargar Expo Go en tu dispositivo móvil:
 
-Android (Google Play)
-
-iOS (App Store)
+- Android (Google Play)
+- iOS (App Store)
 
 🚀 Instalación y ejecución local
-
-## npm install -g expo-cli
 1. Clona el repositorio
----
+```bash
 git clone https://github.com/villegas07/RifiRafi_App.git
 cd RifiRafi_App
-
+```
 2. Instala las dependencias del proyecto
+```bash
 npm install
-
+```
 3. Inicia el servidor de desarrollo con Expo
+```bash
 npm start
+```
+Esto abrirá una pestaña en tu navegador con un código QR para escanear con la app Expo Go.
+
+📱 Ejecutar en tu celular
+Abre la app Expo Go en tu teléfono.
+
+Escanea el código QR que aparece en el navegador después de ejecutar npx expo start.
+
+La aplicación se cargará automáticamente en tu dispositivo.
+
+🌐 Variables de entorno
+Puedes configurar una variable para la URL base de la API creando un archivo .env en la raíz del proyecto:
+```bash
+API_BASE_URL=https://rifi-rafi.onrender.com/api
+```
+Y accediéndola en el código con process.env.API_BASE_URL.
+
+
+🔐 Autenticación
+- La app utiliza tokens JWT para proteger solicitudes.
+- El token se almacena localmente con AsyncStorage.
+- Axios incluye el token en los headers de forma automática para llamadas protegidas.
+
+🤝 Contribuciones
+¡Las contribuciones son bienvenidas!
+
+Crear rama y subir cambios:
 
 ```bash
+git checkout -b feature/nueva-funcionalidad
+git add .
+git commit -m "Agrega nueva funcionalidad"
+git push origin feature/nueva-funcionalidad
+```
+Luego, abre un Pull Request desde GitHub.
+
+📄 Licencia
+Este proyecto está bajo la licencia MIT. Puedes usarlo, modificarlo y distribuirlo libremente.
+
+👨‍💻 Autor
+Brayan Villegas
+GitHub: @villegas07
+
+¡Gracias por usar RifiRafi!
+Compite, responde y ¡gana premios! 🏆📱
