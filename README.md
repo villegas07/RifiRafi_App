@@ -73,7 +73,7 @@ Esto abrirá una pestaña en tu navegador con un código QR para escanear con la
 
 ## 📱 Ejecutar en tu celular
 - Abre la app Expo Go en tu teléfono.
-- Escanea el código QR que aparece en el navegador después de ejecutar npx expo start.
+- Escanea el código QR que aparece en el navegador después de ejecutar npm start.
 - La aplicación se cargará automáticamente en tu dispositivo.
 
 ## 🌐 Variables de entorno
@@ -88,9 +88,6 @@ Y accediéndola en el código con process.env.API_BASE_URL.
 - La app utiliza tokens JWT para proteger solicitudes.
 - El token se almacena localmente con AsyncStorage.
 - Axios incluye el token en los headers de forma automática para llamadas protegidas.
-
-🤝 Contribuciones
-¡Las contribuciones son bienvenidas!
 ---
 ## Crear rama y subir cambios:
 
