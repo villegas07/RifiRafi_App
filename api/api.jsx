@@ -23,7 +23,6 @@ function onRefreshed(newToken) {
 
 export const api = axios.create({
   baseURL: 'https://rifi-rafi.onrender.com/api', // 2. Base URL corregida
-  withCredentials: true,
   validateStatus: function (status) {
     return true;
   },
