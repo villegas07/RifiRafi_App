@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { AsyncStorage } from '@react-native-async-storage/async-storage'; // 1. Importar AsyncStorage
+import AsyncStorage from '@react-native-async-storage/async-storage'; // 1. Importar AsyncStorage
 import { refresh } from './auth/refresh';
 import { verifySession } from './auth/verify-session';
 
