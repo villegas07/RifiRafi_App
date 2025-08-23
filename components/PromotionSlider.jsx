@@ -23,7 +23,7 @@ export default function PromotionSlider({ promotions, onPress }) {
                         styles.card,
                         { display: index === currentIndex ? 'flex' : 'none' }, // Muestra solo la tarjeta actual
                     ]}
-                    onPress={() => onPress(promo)} // Llama al onPress con la promoción actual
+                    onPress={() => onPress && onPress(promo)} // Llama al onPress con la promoción actual
                 >
                     <View style={styles.cardContent}>
                         <Text style={styles.text}>{promo.text}</Text>

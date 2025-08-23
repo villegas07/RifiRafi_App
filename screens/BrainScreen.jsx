@@ -36,7 +36,7 @@ export default function GymMentalScreen({ navigation }) {
             {/* Promotion Slider */}
             <PromotionSlider
                 promotions={promotions} // Usa los datos centralizados
-                onPress={(promo) => navigation.navigate(promo.screen)} // Navega a la pantalla especificada
+                onPress={() => navigation.navigate('PromotionsScreen')} // Navega a la pantalla de promociones
             />
 
             {/* Línea de Refuerzo */}

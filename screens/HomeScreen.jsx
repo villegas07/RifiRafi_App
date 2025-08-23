@@ -5,6 +5,7 @@ import BackgroundFirst from '../components/BackgroundFirst';
 import RoundedImageBackground from '../components/RoundedImageBackground';
 import PromotionSlider from '../components/PromotionSlider';
 import { promotions } from '../utils/promotionsData'; // Importa las promociones compartidas
+import PromotionsScreen from './PromotionsScreen';
 
 export default function HomeScreen({ navigation }) {
     const menuItems = [
@@ -34,7 +35,7 @@ export default function HomeScreen({ navigation }) {
                 {/* Botón central */}
                 <TouchableOpacity
                     style={styles.playButton}
-                    onPress={() => navigation.navigate("QuestionsScreen")}
+                    onPress={() => navigation.navigate("PromotionsScreen")}
                 >
                     <Text style={styles.playButtonText}>Play</Text>
                 </TouchableOpacity>
@@ -43,7 +44,7 @@ export default function HomeScreen({ navigation }) {
                 <View style={styles.promotionContainer}>
                     <PromotionSlider
                         promotions={promotions}
-                        onPress={(promo) => navigation.navigate(promo.screen)} // Navega a la pantalla especificada
+                        onPress={() => navigation.navigate('PromotionsScreen')} // Navega a la pantalla de promociones
                     />
                 </View>
 

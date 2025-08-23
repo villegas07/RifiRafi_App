@@ -21,4 +21,25 @@ export const promotions = [
         validity: 'Válido desde 01/06/2023 hasta 31/08/2023',
         screen: 'QuestionsScreen', // Pantalla a la que debe ir
     },
+    {
+        id: '4',
+        text: 'Viaja gratis este verano.',
+        image: require('../assets/vacation.png'),
+        validity: 'Válido desde 01/06/2023 hasta 31/08/2023',
+        screen: 'QuestionsScreen', // Pantalla a la que debe ir
+    },
+    {
+        id: '5',
+        text: 'Viaja gratis este verano.',
+        image: require('../assets/vacation.png'),
+        validity: 'Válido desde 01/06/2023 hasta 31/08/2023',
+        screen: 'QuestionsScreen', // Pantalla a la que debe ir
+    },
+    {
+        id: '6',
+        text: 'Viaja gratis este verano.',
+        image: require('../assets/vacation.png'),
+        validity: 'Válido desde 01/06/2023 hasta 31/08/2023',
+        screen: 'QuestionsScreen', // Pantalla a la que debe ir
+    },
 ];

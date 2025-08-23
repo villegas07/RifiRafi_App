@@ -19,6 +19,7 @@ import RegisterScreen from './screens/RegisterScreen';
 import WompiWidgetScreen from './screens/WompiWidgetScreen';
 import ResultsScreen from './screens/ResultsScreen';
 import ForgotYourPasswordScreen from './screens/ForgotYourPasswordScreen';
+import PromotionsScreen from './screens/PromotionsScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -149,6 +150,15 @@ export default function App() {
             headerTransparent: true,
             headerTitle: "",
             headerTintColor: "##0FAC39",
+          }}
+        />
+        <Stack.Screen
+          name="PromotionsScreen"
+          component={PromotionsScreen}
+          options={{
+            headerTransparent: true,
+            headerTitle: "Rifi-Rafis disponibles",
+            headerTintColor: "#000",
           }}
         />
 

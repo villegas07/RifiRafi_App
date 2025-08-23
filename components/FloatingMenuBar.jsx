@@ -58,7 +58,7 @@ export default function FloatingMenuBar({ menuItems }) {
 const styles = StyleSheet.create({
     menuContainer: {
         position: 'absolute',
-        bottom: 0,
+        bottom: 10,
         width: '100%',
         alignItems: 'center',
     },
