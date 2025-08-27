@@ -1,17 +1,63 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, Dimensions, ActivityIndicator } from 'react-native';
+import { getAllForms } from '../api/forms/get-all';
 
 const { width } = Dimensions.get('window');
 
-export default function PromotionSlider({ promotions, onPress }) {
+export default function PromotionSlider({ onPress }) {
     const [currentIndex, setCurrentIndex] = useState(0);
+    const [promotions, setPromotions] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const interval = setInterval(() => {
-            setCurrentIndex((prevIndex) => (prevIndex + 1) % promotions.length);
-        }, 3000); // Cambia cada 3 segundos
-        return () => clearInterval(interval);
+        fetchPromotions();
+    }, []);
+
+    useEffect(() => {
+        if (promotions.length > 0) {
+            const interval = setInterval(() => {
+                setCurrentIndex((prevIndex) => (prevIndex + 1) % promotions.length);
+            }, 3000);
+            return () => clearInterval(interval);
+        }
     }, [promotions.length]);
+
+    const fetchPromotions = async () => {
+        try {
+            const response = await getAllForms({ limit: 10 });
+            if (response.success && response.data?.forms) {
+                const formattedPromotions = response.data.forms.map(form => ({
+                    id: form.id,
+                    text: form.title || 'Participa en esta trivia',
+                    image: require('../assets/test.png'), // Imagen por defecto
+                    validity: `Válido hasta ${new Date(form.endDate).toLocaleDateString()}`,
+                    formData: form
+                }));
+                setPromotions(formattedPromotions);
+            }
+        } catch (error) {
+            console.error('Error fetching promotions:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    if (loading) {
+        return (
+            <View style={[styles.container, styles.loadingContainer]}>
+                <ActivityIndicator size="large" color="#FFD700" />
+                <Text style={styles.loadingText}>Cargando promociones...</Text>
+            </View>
+        );
+    }
+
+    if (promotions.length === 0) {
+        return (
+            <View style={[styles.container, styles.emptyContainer]}>
+                <Text style={styles.emptyText}>No hay promociones disponibles</Text>
+            </View>
+        );
+    }
 
     return (
         <View style={styles.container}>
@@ -102,5 +148,24 @@ const styles = StyleSheet.create({
     },
     activeDot: {
         backgroundColor: '#FFD700',
+    },
+    loadingContainer: {
+        justifyContent: 'center',
+        height: 200,
+    },
+    loadingText: {
+        marginTop: 10,
+        fontSize: 14,
+        color: '#666',
+        textAlign: 'center',
+    },
+    emptyContainer: {
+        justifyContent: 'center',
+        height: 200,
+    },
+    emptyText: {
+        fontSize: 16,
+        color: '#666',
+        textAlign: 'center',
     },
 });

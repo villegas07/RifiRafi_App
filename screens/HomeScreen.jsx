@@ -4,8 +4,6 @@ import FloatingMenuBar from '../components/FloatingMenuBar';
 import BackgroundFirst from '../components/BackgroundFirst';
 import RoundedImageBackground from '../components/RoundedImageBackground';
 import PromotionSlider from '../components/PromotionSlider';
-import { promotions } from '../utils/promotionsData'; // Importa las promociones compartidas
-import PromotionsScreen from './PromotionsScreen';
 
 export default function HomeScreen({ navigation }) {
     const menuItems = [
@@ -43,8 +41,7 @@ export default function HomeScreen({ navigation }) {
                 {/* Componente de promoción */}
                 <View style={styles.promotionContainer}>
                     <PromotionSlider
-                        promotions={promotions}
-                        onPress={() => navigation.navigate('PromotionsScreen')} // Navega a la pantalla de promociones
+                        onPress={() => navigation.navigate('PromotionsScreen')}
                     />
                 </View>
 

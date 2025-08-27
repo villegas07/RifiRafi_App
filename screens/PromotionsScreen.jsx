@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,11 +6,39 @@ import {
   FlatList,
   TouchableOpacity,
   Image,
+  ActivityIndicator,
 } from 'react-native';
 import PuzzleBackground from '../components/BackgroundSecon';
-import { promotions } from '../utils/promotionsData';
+import { getAllForms } from '../api/forms/get-all';
 
 export default function PromotionsScreen({ navigation }) {
+  const [promotions, setPromotions] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchPromotions();
+  }, []);
+
+  const fetchPromotions = async () => {
+    try {
+      const response = await getAllForms({ limit: 20 });
+      if (response.success && response.data?.forms) {
+        const formattedPromotions = response.data.forms.map(form => ({
+          id: form.id,
+          text: form.title || 'Participa en esta trivia',
+          image: require('../assets/test.png'),
+          validity: `Válido hasta ${new Date(form.endDate).toLocaleDateString()}`,
+          screen: 'QuestionsScreen',
+          formData: form
+        }));
+        setPromotions(formattedPromotions);
+      }
+    } catch (error) {
+      console.error('Error fetching promotions:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
   const renderPromotion = ({ item }) => (
     <TouchableOpacity
       style={styles.promotionCard}
@@ -24,6 +52,18 @@ export default function PromotionsScreen({ navigation }) {
     </TouchableOpacity>
   );
 
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <PuzzleBackground />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#FFD700" />
+          <Text style={styles.loadingText}>Cargando promociones...</Text>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <PuzzleBackground />
@@ -34,6 +74,11 @@ export default function PromotionsScreen({ navigation }) {
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContainer}
         showsVerticalScrollIndicator={false}
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>No hay promociones disponibles</Text>
+          </View>
+        }
       />
     </View>
   );
@@ -81,5 +126,26 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#888',
     marginTop: 10,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#666',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: 100,
+  },
+  emptyText: {
+    fontSize: 18,
+    color: '#666',
+    textAlign: 'center',
   },
 });
