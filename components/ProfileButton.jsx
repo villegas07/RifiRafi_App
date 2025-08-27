@@ -1,24 +1,21 @@
 import React from 'react';
-import { TouchableOpacity, Image, StyleSheet } from 'react-native';
+import { TouchableOpacity, StyleSheet } from 'react-native';
+import { useUser } from '../hooks/useUser';
+import Avatar from './Avatar';
 
-export default function ProfileButton({ imageSource, onPress, style }) {
+export default function ProfileButton({ onPress, style, size = 50 }) {
+    const { user } = useUser();
+    
     return (
         <TouchableOpacity onPress={onPress} style={[styles.container, style]}>
-            <Image source={imageSource} style={styles.image} />
+            <Avatar user={user} size={size} />
         </TouchableOpacity>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
-        width: 50,
-        height: 50,
-        borderRadius: 25,
         overflow: 'hidden',
         marginLeft: 40,
-    },
-    image: {
-        width: '100%',
-        height: '100%',
     },
 });

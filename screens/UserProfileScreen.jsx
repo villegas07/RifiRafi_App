@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
     View,
     Text,
@@ -6,10 +6,12 @@ import {
     TouchableOpacity,
     Image,
     Alert,
+    ActivityIndicator,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import Backgrounfour from "../components/Backgrounfour";
-import FloatingMenuBar from "../components/FloatingMenuBar";
+import Avatar from "../components/Avatar";
+import { useUser } from "../hooks/useUser";
 
 
 const buttonOptions = [
@@ -22,29 +24,83 @@ const buttonOptions = [
 ];
 
 export default function PerfilScreen({ navigation }) {
-    const [profileImage, setProfileImage] = useState(require("../assets/Vacaciones.jpg"));
+    const { user, loading, error, updateProfilePicture } = useUser();
+    const [profileImage, setProfileImage] = useState(null);
+    const [userName, setUserName] = useState('');
+
+    useEffect(() => {
+        if (user) {
+            setProfileImage(user.picture ? { uri: user.picture } : require("../assets/Vacaciones.jpg"));
+            setUserName(user.name || 'Usuario');
+        }
+    }, [user]);
 
     const changeProfilePicture = async () => {
-        const result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
-            allowsEditing: true,
-            aspect: [1, 1],
-            quality: 1,
-        });
+        try {
+            const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+            if (status !== 'granted') {
+                Alert.alert('Permisos', 'Se necesitan permisos para acceder a la galería');
+                return;
+            }
 
-        if (!result.canceled) {
-            setProfileImage({ uri: result.assets[0].uri });
+            const result = await ImagePicker.launchImageLibraryAsync({
+                mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                allowsEditing: true,
+                aspect: [1, 1],
+                quality: 0.8,
+            });
+
+            if (!result.canceled) {
+                const imageUri = result.assets[0].uri;
+                setProfileImage({ uri: imageUri });
+                
+                Alert.alert("Actualizando", "Subiendo imagen...");
+                const updateResult = await updateProfilePicture(imageUri);
+                
+                if (updateResult.success) {
+                    Alert.alert("Éxito", "Imagen actualizada correctamente");
+                } else {
+                    Alert.alert("Error", updateResult.error || "No se pudo actualizar la imagen de perfil");
+                    setProfileImage(user.picture ? { uri: user.picture } : null);
+                }
+            }
+        } catch (error) {
+            console.error('Error changing profile picture:', error);
+            Alert.alert("Error", "Error al cambiar la imagen de perfil");
         }
     };
+
+    if (loading) {
+        return (
+            <View style={[styles.container, styles.loadingContainer]}>
+                <Backgrounfour />
+                <ActivityIndicator size="large" color="#4CAF50" />
+                <Text style={styles.loadingText}>Cargando perfil...</Text>
+            </View>
+        );
+    }
+
+    if (error) {
+        return (
+            <View style={[styles.container, styles.errorContainer]}>
+                <Backgrounfour />
+                <Text style={styles.errorText}>Error: {error}</Text>
+            </View>
+        );
+    }
 
     return (
         <View style={styles.container}>
             <Backgrounfour />
-
-            {/* Contenedor del perfil */}
             <View style={styles.profileContainer}>
                 <View style={styles.profileImageContainer}>
-                    <Image source={profileImage} style={styles.profileImage} />
+                    {profileImage ? (
+                        <Image source={profileImage} style={styles.profileImage} />
+                    ) : (
+                        <View style={styles.profileImage}>
+                            <Avatar user={user} size={130} />
+                        </View>
+                    )}
                     <TouchableOpacity
                         style={styles.editButton}
                         onPress={changeProfilePicture}
@@ -52,6 +108,7 @@ export default function PerfilScreen({ navigation }) {
                         <Text style={styles.editButtonText}>✎</Text>
                     </TouchableOpacity>
                 </View>
+                <Text style={styles.userName}>{user?.firstName || user?.name || 'Usuario'}</Text>
                 <View style={styles.buttonsContainer}>
                     {buttonOptions.map((item, index) => (
                         <TouchableOpacity
@@ -135,9 +192,30 @@ const styles = StyleSheet.create({
         fontSize: 18,
         color: "#333",
     },
-    menuContainer: {
-        position: "absolute",
-        bottom: 10,
-        width: "100%",
+    userName: {
+        fontSize: 20,
+        fontWeight: "bold",
+        color: "#333",
+        marginTop: -30,
+        marginBottom: 20,
+    },
+    loadingContainer: {
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    loadingText: {
+        marginTop: 10,
+        fontSize: 16,
+        color: "#666",
+    },
+    errorContainer: {
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    errorText: {
+        fontSize: 16,
+        color: "#ff0000",
+        textAlign: "center",
+        marginHorizontal: 20,
     },
 });

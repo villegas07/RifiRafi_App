@@ -4,8 +4,14 @@ import FloatingMenuBar from '../components/FloatingMenuBar';
 import BackgroundFirst from '../components/BackgroundFirst';
 import RoundedImageBackground from '../components/RoundedImageBackground';
 import PromotionSlider from '../components/PromotionSlider';
+import ProfileButton from '../components/ProfileButton';
+import PointsBar from '../components/PointsBar';
+import UserName from '../components/UserName';
+import { useUser } from '../hooks/useUser';
 
 export default function HomeScreen({ navigation }) {
+    const { user } = useUser();
+    console.log('HomeScreen user:', user);
     const menuItems = [
         { screen: 'Ideas', icon: require('../assets/test.png'), iconType: 'image', color: '#4CAF50' },
         { screen: 'Messages', icon: require('../assets/chat.png'), iconType: 'image', color: '#FFC107' },
@@ -26,7 +32,14 @@ export default function HomeScreen({ navigation }) {
                 <View style={styles.imageContainer}>
                     <RoundedImageBackground />
                     <View style={styles.textOverlay}>
-                        <Text style={styles.title}>¡Gana una{"\n"}Aventura!</Text>
+                        <Text style={styles.title}>¡Hola <UserName fallback="Usuario" />!</Text>
+                        <Text style={styles.subtitle}>¡Gana una Aventura!</Text>
+                    </View>
+                    
+                    {/* Barra superior con perfil y puntos */}
+                    <View style={styles.topBar}>
+                        <ProfileButton onPress={() => navigation.navigate('UserProfileScreen')} />
+                        <PointsBar onPress={() => navigation.navigate('PaymentScreen')} />
                     </View>
                 </View>
 
@@ -87,9 +100,25 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     title: {
-        fontSize: 45,
+        fontSize: 32,
         fontWeight: 'bold',
         color: '#ffffff',
+        marginBottom: 5,
+    },
+    subtitle: {
+        fontSize: 28,
+        fontWeight: 'bold',
+        color: '#ffffff',
+    },
+    topBar: {
+        position: 'absolute',
+        top: 50,
+        left: 0,
+        right: 0,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 20,
     },
     playButton: {
         marginTop: -190,

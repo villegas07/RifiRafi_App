@@ -1,9 +1,11 @@
 import React from "react";
-import { View, Text, StyleSheet, ScrollView } from "react-native";
-import Backgrounfour from '../components/Backgrounfour'; // Importa el componente de fondo
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
+import Backgrounfour from '../components/Backgrounfour';
+import Avatar from '../components/Avatar';
+import { useUser } from '../hooks/useUser';
 
-const ResultsScreen = ({ route }) => {
-    // Obtener los resultados de las preguntas desde los parámetros de navegación
+const ResultsScreen = ({ route, navigation }) => {
+    const { user } = useUser();
     const { results } = route.params;
 
     // Calcular los puntos totales y el tiempo total
@@ -29,11 +31,22 @@ const ResultsScreen = ({ route }) => {
 
             {/* Capa del contenido */}
             <View style={styles.contentLayer}>
+                {/* Header con perfil del usuario */}
+                <View style={styles.header}>
+                    <TouchableOpacity onPress={() => navigation.navigate('UserProfileScreen')}>
+                        <Avatar user={user} size={50} />
+                    </TouchableOpacity>
+                    <View style={styles.userInfo}>
+                        <Text style={styles.userName}>{user?.firstName || user?.name || 'Usuario'}</Text>
+                        <Text style={styles.userPoints}>Puntos: {user?.points || 0}</Text>
+                    </View>
+                </View>
+                
                 <Text style={styles.title}>Resultados</Text>
 
                 {/* Resumen de puntos y tiempo total */}
                 <View style={styles.summaryContainer}>
-                    <Text style={styles.summaryText}>Puntos totales: {totalPoints}</Text>
+                    <Text style={styles.summaryText}>Respuestas correctas: {totalPoints}</Text>
                     <Text style={styles.summaryText}>Tiempo total: {formatTime(totalTime)}</Text>
                 </View>
 
@@ -81,6 +94,28 @@ const styles = StyleSheet.create({
         position: "relative", // Contenido en una capa superior
         zIndex: 2, // Capa superior
         padding: 20,
+    },
+    header: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 20,
+        backgroundColor: '#fff',
+        padding: 15,
+        borderRadius: 10,
+        elevation: 2,
+    },
+    userInfo: {
+        marginLeft: 15,
+        flex: 1,
+    },
+    userName: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#333',
+    },
+    userPoints: {
+        fontSize: 14,
+        color: '#666',
     },
     title: {
         fontSize: 24,

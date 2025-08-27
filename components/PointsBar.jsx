@@ -1,11 +1,14 @@
 import React from "react";
 import { View, Text, StyleSheet, Image, TouchableOpacity } from "react-native";
+import { useUser } from "../hooks/useUser";
 
 export default function PointsBar({ onPress }) {
+    const { user } = useUser();
+    
     return (
         <TouchableOpacity style={styles.pointsContainer} onPress={onPress}>
             <Image source={require("../assets/Monedero.png")} style={styles.pointsIcon} />
-            <Text style={styles.pointsValue}>100</Text>
+            <Text style={styles.pointsValue}>{user?.points || 0}</Text>
         </TouchableOpacity>
     );
 }

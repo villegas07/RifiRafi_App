@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
     View,
     Text,
@@ -10,36 +10,69 @@ import {
     KeyboardAvoidingView,
     Platform,
     ScrollView,
+    ActivityIndicator,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import Backgrounfour from "../components/Backgrounfour"; // Componente del fondo
+import Backgrounfour from "../components/Backgrounfour";
+import Avatar from "../components/Avatar";
+import { useUser } from "../hooks/useUser";
 
 export default function UserProfileScreen() {
-    const [profileImage, setProfileImage] = useState(
-        require("../assets/Vacaciones.jpg")
-    );
-    const [userData, setUserData] = useState({
-        name: "Brayan Villegas Corrales",
-        age: "21",
-        identification: "21",
-        email: "brayanvillegas@rifirafi.com",
-        phone: "30028654574",
-    });
+    const { user, loading, error, updateProfilePicture, updateUserData } = useUser();
+    const [profileImage, setProfileImage] = useState(null);
+    const [userData, setUserData] = useState({});
+    const [originalData, setOriginalData] = useState({});
 
-    const [originalData, setOriginalData] = useState({ ...userData });
+    useEffect(() => {
+        if (user) {
+            const userInfo = {
+                name: user.firstName || user.name || '',
+                age: user.age?.toString() || '',
+                identification: user.identification || '',
+                email: user.email || '',
+                phone: user.phone || '',
+            };
+            setUserData(userInfo);
+            setOriginalData(userInfo);
+            setProfileImage(user.picture ? { uri: user.picture } : null);
+        }
+    }, [user]);
 
     const handleImageChange = async () => {
-        const result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
-            allowsEditing: true,
-            aspect: [1, 1],
-            quality: 1,
-        });
+        try {
+            // Solicitar permisos
+            const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+            if (status !== 'granted') {
+                Alert.alert('Permisos', 'Se necesitan permisos para acceder a la galería');
+                return;
+            }
 
-        if (!result.canceled) {
-            setProfileImage({ uri: result.assets[0].uri });
-        } else {
-            Alert.alert("Error", "No seleccionaste ninguna imagen.");
+            const result = await ImagePicker.launchImageLibraryAsync({
+                mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                allowsEditing: true,
+                aspect: [1, 1],
+                quality: 0.8,
+            });
+
+            if (!result.canceled) {
+                const imageUri = result.assets[0].uri;
+                console.log('Selected image URI:', imageUri);
+                setProfileImage({ uri: imageUri });
+                
+                Alert.alert("Actualizando", "Subiendo imagen...");
+                const updateResult = await updateProfilePicture(imageUri);
+                console.log('Update result:', updateResult);
+                
+                if (updateResult.success) {
+                    Alert.alert("Éxito", "Imagen actualizada correctamente");
+                } else {
+                    Alert.alert("Error", updateResult.error || "No se pudo actualizar la imagen de perfil");
+                    setProfileImage(user.picture ? { uri: user.picture } : null);
+                }
+            }
+        } catch (error) {
+            console.error('Error in handleImageChange:', error);
+            Alert.alert("Error", "Error al seleccionar la imagen");
         }
     };
 
@@ -47,8 +80,7 @@ export default function UserProfileScreen() {
         setUserData((prev) => ({ ...prev, [key]: value }));
     };
 
-    const confirmChanges = (key) => {
-        // Solo muestra la alerta si el valor actual del campo es diferente al original
+    const confirmChanges = async (key) => {
         if (userData[key] !== originalData[key]) {
             Alert.alert(
                 "Confirmar cambio",
@@ -57,7 +89,6 @@ export default function UserProfileScreen() {
                     {
                         text: "Cancelar",
                         onPress: () => {
-                            // Revertimos el valor al original
                             setUserData((prev) => ({
                                 ...prev,
                                 [key]: originalData[key],
@@ -67,12 +98,25 @@ export default function UserProfileScreen() {
                     },
                     {
                         text: "Guardar",
-                        onPress: () => {
-                            // Actualizamos los valores originales
-                            setOriginalData((prev) => ({
-                                ...prev,
-                                [key]: userData[key],
-                            }));
+                        onPress: async () => {
+                            const updateData = {};
+                            if (key === 'name') updateData.displayName = userData[key];
+                            if (key === 'email') updateData.email = userData[key];
+                            
+                            const result = await updateUserData(updateData);
+                            if (result.success) {
+                                setOriginalData((prev) => ({
+                                    ...prev,
+                                    [key]: userData[key],
+                                }));
+                                Alert.alert("Éxito", "Datos actualizados correctamente");
+                            } else {
+                                Alert.alert("Error", "No se pudieron actualizar los datos");
+                                setUserData((prev) => ({
+                                    ...prev,
+                                    [key]: originalData[key],
+                                }));
+                            }
                         },
                     },
                 ]
@@ -80,12 +124,28 @@ export default function UserProfileScreen() {
         }
     };
 
+    if (loading) {
+        return (
+            <View style={[styles.container, styles.loadingContainer]}>
+                <Backgrounfour />
+                <ActivityIndicator size="large" color="#4CAF50" />
+                <Text style={styles.loadingText}>Cargando perfil...</Text>
+            </View>
+        );
+    }
+
+    if (error) {
+        return (
+            <View style={[styles.container, styles.errorContainer]}>
+                <Backgrounfour />
+                <Text style={styles.errorText}>Error: {error}</Text>
+            </View>
+        );
+    }
+
     return (
         <View style={{ flex: 1 }}>
-            {/* Fondo estático */}
             <Backgrounfour />
-
-            {/* Contenido que se ajusta con el teclado */}
             <KeyboardAvoidingView
                 style={styles.container}
                 behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -93,7 +153,13 @@ export default function UserProfileScreen() {
                 <ScrollView contentContainerStyle={styles.scrollContent}>
                     <View style={styles.profileContainer}>
                         <View style={styles.profileImageContainer}>
-                            <Image source={profileImage} style={styles.profileImage} />
+                            {profileImage ? (
+                                <Image source={profileImage} style={styles.profileImage} />
+                            ) : (
+                                <View style={styles.profileImage}>
+                                    <Avatar user={user} size={170} />
+                                </View>
+                            )}
                             <TouchableOpacity
                                 style={styles.editButton}
                                 onPress={handleImageChange}
@@ -226,5 +292,24 @@ const styles = StyleSheet.create({
         backgroundColor: "#f8f8f8",
         fontSize: 16,
         color: "#333",
+    },
+    loadingContainer: {
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    loadingText: {
+        marginTop: 10,
+        fontSize: 16,
+        color: "#666",
+    },
+    errorContainer: {
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    errorText: {
+        fontSize: 16,
+        color: "#ff0000",
+        textAlign: "center",
+        marginHorizontal: 20,
     },
 });

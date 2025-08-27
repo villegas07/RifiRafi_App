@@ -42,7 +42,7 @@ export default function PromotionsScreen({ navigation }) {
   const renderPromotion = ({ item }) => (
     <TouchableOpacity
       style={styles.promotionCard}
-      onPress={() => navigation.navigate(item.screen)}
+      onPress={() => navigation.navigate('QuestionsScreen', { formId: item.id })}
     >
       <View style={styles.cardContent}>
         <Text style={styles.promotionText}>{item.text}</Text>

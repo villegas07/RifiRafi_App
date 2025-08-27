@@ -1,29 +1,63 @@
 import React, { useEffect, useRef, useState } from "react";
-import { View, Text, StyleSheet, Image, TouchableOpacity, Animated } from "react-native";
-import SvgComponent from "../components/SvgComponent"; // Componente SVG del fondo detrás de la imagen
-import PointsBar from "../components/PointsBar"; // Nuevo componente de barra de puntos
+import { View, Text, StyleSheet, Image, TouchableOpacity, Animated, ActivityIndicator } from "react-native";
+import SvgComponent from "../components/SvgComponent";
+import PointsBar from "../components/PointsBar";
+import ProfileButton from "../components/ProfileButton";
+import { getForm } from "../api/forms/get-one";
 
-// Datos de ejemplo para las preguntas
-const questions = [
-    {
-        question: "¿Cuál es la hamburguesa más famosa de McDonald's?",
-        answers: ["McBacon", "Big Mac", "Doble Big Mac", "Mc Pollo"],
-        correctAnswer: "Big Mac",
-    },
-    {
-        question: "¿Cuál es el ingrediente principal de una pizza Margarita?",
-        answers: ["Queso", "Tomate", "Albahaca", "Jamón"],
-        correctAnswer: "Tomate",
-    },
-    // Más preguntas...
-];
+export default function QuestionsScreen({ navigation, route }) {
+    const { formId } = route.params || {};
+    const [questions, setQuestions] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+    const [userAnswers, setUserAnswers] = useState([]);
+    const progressAnim = useRef(new Animated.Value(0)).current;
+    const [timeSpent, setTimeSpent] = useState(0);
+    const MAX_TIME = 15000;
 
-export default function QuestionsScreen({ navigation }) {
-    const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0); // Índice de la pregunta actual
-    const [userAnswers, setUserAnswers] = useState([]); // Respuestas del usuario
-    const progressAnim = useRef(new Animated.Value(0)).current; // Animación de la barra
-    const [timeSpent, setTimeSpent] = useState(0); // Tiempo que el usuario ha tardado en la pregunta actual
-    const MAX_TIME = 15000; // Tiempo máximo por pregunta (15 segundos)
+    useEffect(() => {
+        if (formId) {
+            fetchFormQuestions();
+        } else {
+            setLoading(false);
+        }
+    }, [formId]);
+
+    const fetchFormQuestions = async () => {
+        try {
+            const response = await getForm(formId);
+            
+            if (response.success && response.data) {
+                const formData = response.data;
+                const questionCount = formData.questions || 1;
+                
+                // Crear preguntas de ejemplo basadas en el título del formulario
+                const sampleQuestions = [];
+                
+                for (let i = 0; i < questionCount; i++) {
+                    if (formData.title.toLowerCase().includes('apple')) {
+                        sampleQuestions.push({
+                            question: i === 0 ? formData.title : `Pregunta ${i + 1} sobre productos Apple`,
+                            answers: ['iPhone', 'Samsung Galaxy', 'MacBook', 'Huawei'],
+                            correctAnswer: i === 0 ? 'MacBook' : 'iPhone'
+                        });
+                    } else {
+                        sampleQuestions.push({
+                            question: i === 0 ? formData.title : `Pregunta ${i + 1}: ${formData.description || 'Pregunta de trivia'}`,
+                            answers: ['Opción A', 'Opción B', 'Opción C', 'Opción D'],
+                            correctAnswer: 'Opción A'
+                        });
+                    }
+                }
+                
+                setQuestions(sampleQuestions);
+            }
+        } catch (error) {
+            console.error('Error fetching questions:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     // Función para manejar la selección de respuesta
     const handleAnswer = (answer) => {
@@ -61,7 +95,7 @@ export default function QuestionsScreen({ navigation }) {
             ];
 
             // Navegar a la pantalla de resultados con todas las respuestas
-            navigation.navigate("ResultsScreen", { results: updatedUserAnswers });
+            navigation.navigate("ResultsScreen", { results: updatedUserAnswers, formId });
         }
     };
 
@@ -98,7 +132,7 @@ export default function QuestionsScreen({ navigation }) {
                     progressAnim.setValue(0); // Reiniciar la animación de la barra de progreso
                 } else {
                     // Navegar a la pantalla de resultados
-                    navigation.navigate("ResultsScreen", { results: userAnswers });
+                    navigation.navigate("ResultsScreen", { results: userAnswers, formId });
                 }
             }
         }, 10); // Actualizar cada 10 milisegundos
@@ -122,14 +156,38 @@ export default function QuestionsScreen({ navigation }) {
         return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}.${ms.toString().padStart(3, "0")}`;
     };
 
-    // Obtener la pregunta actual
+    if (loading) {
+        return (
+            <View style={[styles.container, styles.loadingContainer]}>
+                <ActivityIndicator size="large" color="#4CAF50" />
+                <Text style={styles.loadingText}>Cargando preguntas...</Text>
+            </View>
+        );
+    }
+
+    if (questions.length === 0) {
+        return (
+            <View style={[styles.container, styles.emptyContainer]}>
+                <Text style={styles.emptyText}>
+                    {!formId ? 'No se especificó un formulario' : 'No hay preguntas disponibles'}
+                </Text>
+                <TouchableOpacity 
+                    style={styles.backButton}
+                    onPress={() => navigation.goBack()}
+                >
+                    <Text style={styles.backButtonText}>Volver</Text>
+                </TouchableOpacity>
+            </View>
+        );
+    }
+
     const currentQuestion = questions[currentQuestionIndex];
 
     return (
         <View style={styles.container}>
             {/* Barra de puntos */}
             <View style={styles.scoreBar}>
-                <Image source={require("../assets/logo0.png")} style={styles.logo} />
+                <ProfileButton onPress={() => navigation.navigate("UserProfileScreen")} />
                 <PointsBar onPress={() => navigation.navigate("PaymentScreen")} />
                 <Image source={require("../assets/logo0.png")} style={styles.logo} />
             </View>
@@ -268,6 +326,36 @@ const styles = StyleSheet.create({
     buttonText: {
         fontSize: 16,
         color: "#FFFFFF",
+        fontWeight: "bold",
+    },
+    loadingContainer: {
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    loadingText: {
+        marginTop: 10,
+        fontSize: 16,
+        color: "#666",
+    },
+    emptyContainer: {
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    emptyText: {
+        fontSize: 18,
+        color: "#666",
+        textAlign: "center",
+        marginBottom: 20,
+    },
+    backButton: {
+        backgroundColor: "#4CAF50",
+        paddingVertical: 12,
+        paddingHorizontal: 30,
+        borderRadius: 25,
+    },
+    backButtonText: {
+        color: "#FFF",
+        fontSize: 16,
         fontWeight: "bold",
     },
 });

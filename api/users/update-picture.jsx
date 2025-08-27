@@ -14,6 +14,9 @@ import { api } from '../api';
  */
 export async function updateUserPicture(identifier, pictureFile) {
   try {
+    console.log('Updating picture for user:', identifier);
+    console.log('Picture file:', pictureFile);
+    
     const formData = new FormData();
     formData.append('picture', pictureFile);
 
@@ -21,10 +24,26 @@ export async function updateUserPicture(identifier, pictureFile) {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
 
-    console.log('Update user picture:', response.status === 200, response.status, response.data);
-    return { success: response.status === 200, data: response.data };
+    console.log('Update user picture response:', {
+      status: response.status,
+      success: response.status === 200,
+      data: response.data
+    });
+    
+    if (response.status === 200) {
+      return { success: true, data: response.data };
+    } else {
+      return { 
+        success: false, 
+        error: response.data?.message || `Error ${response.status}` 
+      };
+    }
   } catch (error) {
     console.error('Update user picture error:', error);
-    return { success: false, error: error.message };
+    console.error('Error response:', error.response?.data);
+    return { 
+      success: false, 
+      error: error.response?.data?.message || error.message 
+    };
   }
 }

@@ -1,8 +1,7 @@
-// screens/PaymentScreen.jsx
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
 import Backgrounfour from '../components/Backgrounfour';
-import PointsBar from '../components/PointsBar';
+import UserHeader from '../components/UserHeader';
 import RechargeOption from '../components/RechargeOption';
 import CustomRechargeOption from '../components/CustomRechargeOption';
 
@@ -31,9 +30,9 @@ export default function PaymentScreen({ navigation }) {
             {/* Fondo */}
             <Backgrounfour />
 
-            {/* Barra de puntos */}
-            <View style={styles.pointsBarContainer}>
-                <PointsBar />
+            {/* Header del usuario */}
+            <View style={styles.headerContainer}>
+                <UserHeader navigation={navigation} />
             </View>
 
             {/* Contenido principal */}
@@ -90,10 +89,10 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
     },
-    pointsBarContainer: {
+    headerContainer: {
         marginTop: 20,
+        marginHorizontal: 20,
         marginBottom: 20,
-        alignItems: 'center',
     },
     content: {
         padding: 20,

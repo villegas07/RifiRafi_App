@@ -44,9 +44,8 @@ export default function TopScreen({ navigation }) {
                     <Text style={styles.headerText}>Top</Text>
                 </View>
                 <ProfileButton
-                    imageSource={require('../assets/Vacaciones.jpg')}
                     onPress={() => navigation.navigate('UserProfileScreen')}
-                    style={styles.profileButton} // Estilo específico para esta screen
+                    style={styles.profileButton}
                 />
             </View>
 
