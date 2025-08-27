@@ -30,10 +30,10 @@ export default function QuestionsScreen({ navigation, route }) {
             if (response.success && response.data) {
                 const formData = response.data;
                 const questionCount = formData.questions || 1;
-                
+
                 // Crear preguntas de ejemplo basadas en el título del formulario
                 const sampleQuestions = [];
-                
+
                 for (let i = 0; i < questionCount; i++) {
                     if (formData.title.toLowerCase().includes('apple')) {
                         sampleQuestions.push({
@@ -49,7 +49,7 @@ export default function QuestionsScreen({ navigation, route }) {
                         });
                     }
                 }
-                
+
                 setQuestions(sampleQuestions);
             }
         } catch (error) {
