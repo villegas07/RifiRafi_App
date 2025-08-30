@@ -1,5 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
+import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 import Backgrounfour from '../components/Backgrounfour';
 import Avatar from '../components/Avatar';
 import { useUser } from '../hooks/useUser';
@@ -32,41 +34,74 @@ const ResultsScreen = ({ route, navigation }) => {
             {/* Capa del contenido */}
             <View style={styles.contentLayer}>
                 {/* Header con perfil del usuario */}
-                <View style={styles.header}>
+                <LinearGradient
+                    colors={['#2CC364FF', '#D5C620FF']}
+                    style={styles.header}
+                    start={{ x: 1, y: 0 }}
+                    end={{ x: 0, y: 1 }}
+                >
                     <TouchableOpacity onPress={() => navigation.navigate('UserProfileScreen')}>
                         <Avatar user={user} size={50} />
                     </TouchableOpacity>
                     <View style={styles.userInfo}>
                         <Text style={styles.userName}>{user?.firstName || user?.name || 'Usuario'}</Text>
-                        <Text style={styles.userPoints}>Puntos: {user?.points || 0}</Text>
+                        <View style={styles.statsRow}>
+                            <View style={styles.statItem}>
+                                <Ionicons name="checkmark-circle" size={16} color="white" />
+                                <Text style={styles.statText}>{totalPoints} correctas</Text>
+                            </View>
+                            <View style={styles.statItem}>
+                                <Ionicons name="time" size={16} color="white" />
+                                <Text style={styles.statText}>{formatTime(totalTime)}</Text>
+                            </View>
+                        </View>
                     </View>
-                </View>
+                    <Ionicons name="trophy" size={24} color="#FFD700" />
+                </LinearGradient>
                 
-                <Text style={styles.title}>Resultados</Text>
-
-                {/* Resumen de puntos y tiempo total */}
-                <View style={styles.summaryContainer}>
-                    <Text style={styles.summaryText}>Respuestas correctas: {totalPoints}</Text>
-                    <Text style={styles.summaryText}>Tiempo total: {formatTime(totalTime)}</Text>
+                <View style={styles.titleContainer}>
+                    <Ionicons name="analytics" size={32} color="#2CC364FF" />
+                    <Text style={styles.title}>Resultados</Text>
                 </View>
 
                 {/* Lista de preguntas */}
-                <ScrollView style={styles.resultsContainer}>
+                <ScrollView style={styles.resultsContainer} showsVerticalScrollIndicator={false}>
                     {results.map((result, index) => (
                         <View key={index} style={styles.resultItem}>
+                            <View style={styles.questionHeader}>
+                                <View style={styles.questionNumber}>
+                                    <Text style={styles.questionNumberText}>{index + 1}</Text>
+                                </View>
+                                <Ionicons 
+                                    name={result.isCorrect ? "checkmark-circle" : "close-circle"} 
+                                    size={24} 
+                                    color={result.isCorrect ? "#4CAF50" : "#F44336"} 
+                                />
+                            </View>
+                            
                             <Text style={styles.questionText}>{result.question}</Text>
-                            <Text style={styles.answerText}>
-                                Tu respuesta:{" "}
-                                <Text style={{ color: result.isCorrect ? "#4CAF50" : "#F44336" }}>
-                                    {result.userAnswer}
-                                </Text>
-                            </Text>
-                            <Text style={styles.answerText}>
-                                Respuesta correcta: {result.correctAnswer}
-                            </Text>
-                            <Text style={styles.timeText}>
-                                Tiempo: {formatTime(result.timeSpent)}
-                            </Text>
+                            
+                            <View style={styles.answerContainer}>
+                                <View style={styles.answerRow}>
+                                    <Ionicons name="person" size={16} color="#666" />
+                                    <Text style={styles.answerLabel}>Tu respuesta: </Text>
+                                    <Text style={[styles.answerValue, { color: result.isCorrect ? "#4CAF50" : "#F44336" }]}>
+                                        {result.userAnswer}
+                                    </Text>
+                                </View>
+                                
+                                <View style={styles.answerRow}>
+                                    <Ionicons name="checkmark" size={16} color="#4CAF50" />
+                                    <Text style={styles.answerLabel}>Correcta: </Text>
+                                    <Text style={styles.correctAnswer}>{result.correctAnswer}</Text>
+                                </View>
+                                
+                                <View style={styles.answerRow}>
+                                    <Ionicons name="time" size={16} color="#2196F3" />
+                                    <Text style={styles.answerLabel}>Tiempo: </Text>
+                                    <Text style={styles.timeValue}>{formatTime(result.timeSpent)}</Text>
+                                </View>
+                            </View>
                         </View>
                     ))}
                 </ScrollView>
@@ -77,85 +112,146 @@ const ResultsScreen = ({ route, navigation }) => {
 
 const styles = StyleSheet.create({
     container: {
-        backgroundColor: "#f1f1f1",
+        backgroundColor: "#f8f9fa",
         flex: 1,
-        position: "relative", // Necesario para superponer capas
+        position: "relative",
     },
     backgroundLayer: {
-        position: "absolute", // Fondo en una capa inferior
+        position: "absolute",
         top: 0,
         left: 0,
         right: 0,
         bottom: 0,
-        zIndex: 1, // Capa inferior
+        zIndex: 1,
     },
     contentLayer: {
         flex: 1,
-        position: "relative", // Contenido en una capa superior
-        zIndex: 2, // Capa superior
-        padding: 20,
+        position: "relative",
+        zIndex: 2,
+        paddingHorizontal: 20,
+        paddingTop: 60,
+        paddingBottom: 20,
     },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 20,
-        backgroundColor: '#fff',
-        padding: 15,
-        borderRadius: 10,
-        elevation: 2,
+        marginBottom: 25,
+        marginTop: 20,
+        padding: 20,
+        borderRadius: 15,
+        elevation: 5,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
     },
     userInfo: {
         marginLeft: 15,
         flex: 1,
     },
     userName: {
-        fontSize: 18,
+        fontSize: 20,
         fontWeight: 'bold',
-        color: '#333',
+        color: 'white',
+        marginBottom: 8,
     },
-    userPoints: {
+    statsRow: {
+        flexDirection: 'row',
+        gap: 15,
+    },
+    statItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+    },
+    statText: {
         fontSize: 14,
-        color: '#666',
+        color: 'rgba(255,255,255,0.9)',
+        fontWeight: '600',
+    },
+    titleContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: 25,
     },
     title: {
-        fontSize: 24,
+        fontSize: 28,
         fontWeight: "bold",
         color: "#333",
-        textAlign: "center",
-        marginBottom: 20,
+        marginLeft: 10,
     },
-    summaryContainer: {
-        marginBottom: 20,
-    },
-    summaryText: {
-        fontSize: 18,
-        color: "#333",
-        textAlign: "center",
-        marginBottom: 5,
-    },
+
     resultsContainer: {
         flex: 1,
     },
     resultItem: {
-        backgroundColor: "#F5F5F5",
-        padding: 15,
-        borderRadius: 10,
-        marginBottom: 10,
+        backgroundColor: "white",
+        padding: 20,
+        borderRadius: 15,
+        marginBottom: 15,
+        elevation: 2,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+    },
+    questionHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 12,
+    },
+    questionNumber: {
+        backgroundColor: '#2CC364FF',
+        width: 30,
+        height: 30,
+        borderRadius: 15,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    questionNumberText: {
+        color: 'white',
+        fontWeight: 'bold',
+        fontSize: 14,
     },
     questionText: {
         fontSize: 16,
-        fontWeight: "bold",
+        fontWeight: "600",
         color: "#333",
-        marginBottom: 10,
+        marginBottom: 15,
+        lineHeight: 22,
     },
-    answerText: {
-        fontSize: 14,
-        color: "#333",
-        marginBottom: 5,
+    answerContainer: {
+        gap: 8,
     },
-    timeText: {
+    answerRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 4,
+    },
+    answerLabel: {
         fontSize: 14,
         color: "#666",
+        marginLeft: 8,
+        fontWeight: '500',
+    },
+    answerValue: {
+        fontSize: 14,
+        fontWeight: 'bold',
+        flex: 1,
+    },
+    correctAnswer: {
+        fontSize: 14,
+        color: "#4CAF50",
+        fontWeight: '600',
+        flex: 1,
+    },
+    timeValue: {
+        fontSize: 14,
+        color: "#2196F3",
+        fontWeight: '600',
+        flex: 1,
     },
 });
 export default ResultsScreen;
