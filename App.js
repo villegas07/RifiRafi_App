@@ -1,6 +1,8 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { AuthProvider } from './context/AuthContext';
+import SessionManager from './components/SessionManager';
 import SplashScreen from './screens/SplashScreen'; // Importa la pantalla de precarga
 import HomeScreen from './screens/HomeScreen';
 import LoginScreen from './screens/LoginScreen';
@@ -25,7 +27,8 @@ const Stack = createNativeStackNavigator();
 
 export default function App() {
   return (
-    <NavigationContainer>
+    <AuthProvider>
+      <NavigationContainer>
       <Stack.Navigator initialRouteName="Splash">
         {/* Pantalla de precarga */}
         <Stack.Screen
@@ -163,6 +166,8 @@ export default function App() {
         />
 
       </Stack.Navigator>
-    </NavigationContainer>
+      <SessionManager />
+      </NavigationContainer>
+    </AuthProvider>
   );
 }

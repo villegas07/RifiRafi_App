@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
     },
     menuContainer: {
         position: 'absolute',
-        bottom: 10,
+        bottom: 15,
         width: '100%',
     },
 });

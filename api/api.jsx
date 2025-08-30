@@ -45,40 +45,54 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // Solo intentar refresh para errores 401 y si no es una ruta de auth
+    if (error.response?.status === 401 && 
+        !originalRequest._retry && 
+        !originalRequest.url?.includes('/auth/')) {
+      
       originalRequest._retry = true;
 
       try {
+        // Si ya se está refrescando, esperar
         if (isRefreshing) {
-          return new Promise((resolve) => {
+          return new Promise((resolve, reject) => {
             subscribeTokenRefresh((newToken) => {
-              originalRequest.headers.Authorization = `Bearer ${newToken}`;
-              resolve(api(originalRequest));
+              if (newToken) {
+                originalRequest.headers.Authorization = `Bearer ${newToken}`;
+                resolve(api(originalRequest));
+              } else {
+                reject(error);
+              }
             });
           });
         }
 
         isRefreshing = true;
 
-        const isLoggedIn = await verifySession();
-        if (isLoggedIn.success) return Promise.reject(error);
+        // Verificar si tenemos refresh token
+        const refreshToken = await AsyncStorage.getItem('refreshToken');
+        if (!refreshToken) {
+          await AsyncStorage.multiRemove(['accessToken', 'refreshToken']);
+          return Promise.reject(error);
+        }
 
+        // Intentar refresh
         const refreshResult = await refresh();
         if (refreshResult.success) {
-          // 5. Usar AsyncStorage para obtener el token
           const newAccessToken = await AsyncStorage.getItem('accessToken');
           onRefreshed(newAccessToken);
           originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
           return api(originalRequest);
         } else {
-          // 6. Eliminar tokens con AsyncStorage
-          await AsyncStorage.removeItem('accessToken');
-          await AsyncStorage.removeItem('refreshToken');
+          // Refresh falló, limpiar tokens
+          await AsyncStorage.multiRemove(['accessToken', 'refreshToken']);
+          onRefreshed(null);
+          return Promise.reject(error);
         }
       } catch (refreshError) {
-        // 7. Manejo de errores con AsyncStorage
-        await AsyncStorage.removeItem('accessToken');
-        await AsyncStorage.removeItem('refreshToken');
+        // Error en el proceso de refresh
+        await AsyncStorage.multiRemove(['accessToken', 'refreshToken']);
+        onRefreshed(null);
         console.error('Error during token refresh:', refreshError);
         return Promise.reject(refreshError);
       } finally {

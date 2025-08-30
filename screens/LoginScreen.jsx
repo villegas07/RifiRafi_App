@@ -13,10 +13,11 @@ import ButtonGradient from "../components/ButtonGradient";
 import Icon from "../assets/logo0.png";
 import { Svg, Path } from "react-native-svg";
 import { AntDesign } from "@expo/vector-icons";
-import { login } from "../api/auth/login"; // Importamos el servicio
+import { useAuth } from '../hooks/useAuth';
 import { useNavigation } from '@react-navigation/native';
 
 export default function LoginScreen({ navigation }) {
+  const { login, loading } = useAuth();
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -29,13 +30,12 @@ export default function LoginScreen({ navigation }) {
       return;
     }
 
-    if (isLoading) return;
+    if (isLoading || loading) return;
 
     setIsLoading(true);
     setErrorMessage("");
 
     try {
-      // Usamos la función importada de la API
       const response = await login({
         identifier: email.trim(),
         password
@@ -117,10 +117,10 @@ export default function LoginScreen({ navigation }) {
 
         <TouchableOpacity 
           onPress={handleLogin}
-          disabled={isLoading}
+          disabled={isLoading || loading}
           style={styles.loginButton}
         >
-          {isLoading ? (
+          {(isLoading || loading) ? (
             <ActivityIndicator color="#fff" />
           ) : (
             <ButtonGradient />
