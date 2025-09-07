@@ -1,5 +1,5 @@
-import React from "react";
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
+import React, { useEffect } from "react";
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, BackHandler } from "react-native";
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import Backgrounfour from '../components/Backgrounfour';
@@ -10,30 +10,34 @@ const ResultsScreen = ({ route, navigation }) => {
     const { user } = useUser();
     const { results } = route.params;
 
-    // Calcular los puntos totales y el tiempo total
-    const totalPoints = results.filter((result) => result.isCorrect).length;
+    const correctAnswers = results.filter((result) => result.isCorrect).length;
+    const totalPoints = correctAnswers * 3;
     const totalTime = results.reduce((sum, result) => sum + result.timeSpent, 0);
 
-    // Función para formatear el tiempo en HH:MM:SS:MS
+    useEffect(() => {
+        const backAction = () => {
+            return true;
+        };
+        const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
+        return () => backHandler.remove();
+    }, []);
+
     const formatTime = (milliseconds) => {
-        const hours = Math.floor(milliseconds / 3600000); // 1 hora = 3600000 ms
-        const minutes = Math.floor((milliseconds % 3600000) / 60000); // 1 minuto = 60000 ms
-        const seconds = Math.floor((milliseconds % 60000) / 1000); // 1 segundo = 1000 ms
-        const ms = Math.floor(milliseconds % 1000); // Milisegundos restantes
+        const hours = Math.floor(milliseconds / 3600000);
+        const minutes = Math.floor((milliseconds % 3600000) / 60000);
+        const seconds = Math.floor((milliseconds % 60000) / 1000);
+        const ms = Math.floor(milliseconds % 1000);
 
         return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}.${ms.toString().padStart(3, "0")}`;
     };
 
     return (
         <View style={styles.container}>
-            {/* Capa del fondo */}
             <View style={styles.backgroundLayer}>
                 <Backgrounfour />
             </View>
 
-            {/* Capa del contenido */}
             <View style={styles.contentLayer}>
-                {/* Header con perfil del usuario */}
                 <LinearGradient
                     colors={['#2CC364FF', '#D5C620FF']}
                     style={styles.header}
@@ -48,7 +52,7 @@ const ResultsScreen = ({ route, navigation }) => {
                         <View style={styles.statsRow}>
                             <View style={styles.statItem}>
                                 <Ionicons name="checkmark-circle" size={16} color="white" />
-                                <Text style={styles.statText}>{totalPoints} correctas</Text>
+                                <Text style={styles.statText}>{correctAnswers} correctas</Text>
                             </View>
                             <View style={styles.statItem}>
                                 <Ionicons name="time" size={16} color="white" />
@@ -56,7 +60,10 @@ const ResultsScreen = ({ route, navigation }) => {
                             </View>
                         </View>
                     </View>
-                    <Ionicons name="trophy" size={24} color="#FFD700" />
+                    <View style={styles.pointsCard}>
+                        <Ionicons name="star" size={20} color="#FFD700" />
+                        <Text style={styles.pointsText}>{totalPoints}</Text>
+                    </View>
                 </LinearGradient>
                 
                 <View style={styles.titleContainer}>
@@ -64,10 +71,13 @@ const ResultsScreen = ({ route, navigation }) => {
                     <Text style={styles.title}>Resultados</Text>
                 </View>
 
-                {/* Lista de preguntas */}
-                <ScrollView style={styles.resultsContainer} showsVerticalScrollIndicator={false}>
-                    {results.map((result, index) => (
-                        <View key={index} style={styles.resultItem}>
+                <FlatList
+                    data={results}
+                    keyExtractor={(item, index) => `question_${index}_${item.question?.slice(0, 5) || 'q'}`}
+                    showsVerticalScrollIndicator={false}
+                    style={styles.resultsContainer}
+                    renderItem={({ item: result, index }) => (
+                        <View style={styles.resultItem}>
                             <View style={styles.questionHeader}>
                                 <View style={styles.questionNumber}>
                                     <Text style={styles.questionNumberText}>{index + 1}</Text>
@@ -103,8 +113,19 @@ const ResultsScreen = ({ route, navigation }) => {
                                 </View>
                             </View>
                         </View>
-                    ))}
-                </ScrollView>
+                    )}
+                />
+                
+                <TouchableOpacity 
+                    style={styles.homeButton}
+                    onPress={() => navigation.reset({
+                        index: 0,
+                        routes: [{ name: 'Home' }],
+                    })}
+                >
+                    <Ionicons name="home" size={24} color="white" />
+                    <Text style={styles.homeButtonText}>Ir a Inicio</Text>
+                </TouchableOpacity>
             </View>
         </View>
     );
@@ -181,7 +202,6 @@ const styles = StyleSheet.create({
         color: "#333",
         marginLeft: 10,
     },
-
     resultsContainer: {
         flex: 1,
     },
@@ -253,5 +273,41 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         flex: 1,
     },
+    pointsCard: {
+        backgroundColor: 'rgba(255,255,255,0.2)',
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        borderRadius: 20,
+        gap: 6,
+    },
+    pointsText: {
+        color: 'white',
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+    homeButton: {
+        backgroundColor: '#2CC364FF',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 15,
+        paddingHorizontal: 30,
+        borderRadius: 25,
+        marginTop: 20,
+        elevation: 3,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 3,
+        gap: 10,
+    },
+    homeButtonText: {
+        color: 'white',
+        fontSize: 18,
+        fontWeight: 'bold',
+    },
 });
+
 export default ResultsScreen;
