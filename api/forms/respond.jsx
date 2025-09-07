@@ -28,11 +28,28 @@ import { api } from '../api';
  */
 export async function respondForm(id, { formToken, answers }) {
   try {
+    console.log('Enviando respuestas:', { id, formToken, answers });
     const response = await api.post(`/forms/${id}/respond`, { formToken, answers });
-    console.log('Respond form:', response.status === 201, response.status, response.data);
-    return { success: response.status === 201, data: response.data };
+    console.log('Respond form - Status:', response.status, 'Data:', response.data);
+    
+    if (response.status === 201 || response.status === 200) {
+      return { success: true, data: response.data };
+    } else {
+      return { 
+        success: false, 
+        error: response.data?.message || `Error ${response.status}`,
+        status: response.status
+      };
+    }
   } catch (error) {
-    console.error('Respond form error:', error);
-    return { success: false, error: error.message };
+    console.error('Respond form error:', {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status
+    });
+    return { 
+      success: false, 
+      error: error.response?.data?.message || error.message || 'Error de conexión'
+    };
   }
 }

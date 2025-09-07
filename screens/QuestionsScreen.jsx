@@ -4,12 +4,15 @@ import SvgComponent from "../components/SvgComponent";
 import PointsBar from "../components/PointsBar";
 import ProfileButton from "../components/ProfileButton";
 import { getForm } from "../api/forms/get-one";
+import { respondForm } from "../api/forms/respond";
+import { generateFormToken } from "../api/forms/generate-token";
 
 export default function QuestionsScreen({ navigation, route }) {
     const { formId } = route.params || {};
     const [questions, setQuestions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [formToken, setFormToken] = useState(null);
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [userAnswers, setUserAnswers] = useState([]);
     const progressAnim = useRef(new Animated.Value(0)).current;
@@ -43,9 +46,17 @@ export default function QuestionsScreen({ navigation, route }) {
                 const formattedQuestions = questionsData.map(q => ({
                     id: q.id,
                     question: q.content || q.question || 'Pregunta sin contenido',
+                    options: q.options || [],
                     answers: q.options ? q.options.map(opt => opt.content || opt.text || opt) : ['Opción A', 'Opción B', 'Opción C', 'Opción D'],
                     correctAnswer: q.options ? q.options.find(opt => opt.isCorrect)?.content || q.options[0]?.content : 'Opción A'
                 }));
+
+                // Obtener el token del formulario si está disponible
+                console.log('Estructura completa del formulario:', JSON.stringify(formData, null, 2));
+                
+                const token = formData.token || formData.formToken || formData.data?.token || formData.data?.formToken;
+                console.log('Token encontrado:', token);
+                setFormToken(token || null);
 
                 setQuestions(formattedQuestions.length > 0 ? formattedQuestions : [{
                     id: 1,
@@ -63,8 +74,73 @@ export default function QuestionsScreen({ navigation, route }) {
         }
     };
 
+    // Función para enviar respuestas a la API
+    const submitAnswers = async (answers) => {
+        try {
+            const apiAnswers = answers.map((answer, index) => {
+                const question = questions[index];
+                if (!question) {
+                    console.warn(`Pregunta ${index} no encontrada`);
+                    return {
+                        questionId: index.toString(),
+                        optionId: '1',
+                        timeSpent: answer.timeSpent || 0
+                    };
+                }
+                
+                const selectedOption = question.options?.find(opt => 
+                    (opt.content || opt.text) === answer.userAnswer
+                ) || null;
+                
+                return {
+                    questionId: question.id?.toString() || index.toString(),
+                    optionId: selectedOption?.id?.toString() || '1',
+                    timeSpent: answer.timeSpent || 0
+                };
+            }).filter(Boolean);
+
+            // Generar token si no existe
+            let tokenToUse = formToken;
+            if (!tokenToUse) {
+                console.log('Generando token para el formulario...');
+                const tokenResponse = await generateFormToken(formId);
+                if (tokenResponse.success) {
+                    // Buscar el token en diferentes ubicaciones de la respuesta
+                    tokenToUse = tokenResponse.data?.token || 
+                                tokenResponse.data?.formToken || 
+                                tokenResponse.data?.data?.token ||
+                                tokenResponse.data?.data?.formToken;
+                    console.log('Token generado exitosamente:', tokenToUse);
+                    
+                    if (!tokenToUse) {
+                        console.error('Token generado pero no encontrado en la respuesta:', tokenResponse.data);
+                        return;
+                    }
+                } else {
+                    console.error('Error generando token:', tokenResponse.error);
+                    return;
+                }
+            }
+
+            const response = await respondForm(formId, {
+                formToken: tokenToUse,
+                answers: apiAnswers
+            });
+
+            if (response.success) {
+                console.log('Respuestas enviadas correctamente:', response.data);
+            } else {
+                console.error('Error al enviar respuestas:', response.error || 'Error desconocido');
+                console.error('Respuesta completa:', response);
+            }
+        } catch (error) {
+            console.error('Error submitting answers:', error);
+            console.error('Datos enviados:', { formId, formToken, answers: apiAnswers });
+        }
+    };
+
     // Función para manejar la selección de respuesta
-    const handleAnswer = (answer) => {
+    const handleAnswer = async (answer) => {
         const currentQuestion = questions[currentQuestionIndex];
         const isCorrect = answer === currentQuestion.correctAnswer;
 
@@ -98,7 +174,8 @@ export default function QuestionsScreen({ navigation, route }) {
                 },
             ];
 
-            // Navegar a la pantalla de resultados con todas las respuestas
+            // Enviar respuestas a la API antes de navegar
+            submitAnswers(updatedUserAnswers);
             navigation.navigate("ResultsScreen", { results: updatedUserAnswers, formId });
         }
     };
@@ -135,8 +212,16 @@ export default function QuestionsScreen({ navigation, route }) {
                     setTimeSpent(0); // Reiniciar el tiempo para la siguiente pregunta
                     progressAnim.setValue(0); // Reiniciar la animación de la barra de progreso
                 } else {
-                    // Navegar a la pantalla de resultados
-                    navigation.navigate("ResultsScreen", { results: userAnswers, formId });
+                    // Enviar respuestas a la API antes de navegar
+                    const finalAnswers = [...userAnswers, {
+                        question: questions[currentQuestionIndex].question,
+                        userAnswer: "No respondida",
+                        correctAnswer: questions[currentQuestionIndex].correctAnswer,
+                        timeSpent: MAX_TIME,
+                        isCorrect: false,
+                    }];
+                    submitAnswers(finalAnswers);
+                    navigation.navigate("ResultsScreen", { results: finalAnswers, formId });
                 }
             }
         }, 10); // Actualizar cada 10 milisegundos
