@@ -9,6 +9,7 @@ export default function QuestionsScreen({ navigation, route }) {
     const { formId } = route.params || {};
     const [questions, setQuestions] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [userAnswers, setUserAnswers] = useState([]);
     const progressAnim = useRef(new Animated.Value(0)).current;
@@ -29,31 +30,34 @@ export default function QuestionsScreen({ navigation, route }) {
             
             if (response.success && response.data) {
                 const formData = response.data;
-                const questionCount = formData.questions || 1;
+                let questionsData = [];
 
-                // Crear preguntas de ejemplo basadas en el título del formulario
-                const sampleQuestions = [];
-
-                for (let i = 0; i < questionCount; i++) {
-                    if (formData.title.toLowerCase().includes('apple')) {
-                        sampleQuestions.push({
-                            question: i === 0 ? formData.title : `Pregunta ${i + 1} sobre productos Apple`,
-                            answers: ['iPhone', 'Samsung Galaxy', 'MacBook', 'Huawei'],
-                            correctAnswer: i === 0 ? 'MacBook' : 'iPhone'
-                        });
-                    } else {
-                        sampleQuestions.push({
-                            question: i === 0 ? formData.title : `Pregunta ${i + 1}: ${formData.description || 'Pregunta de trivia'}`,
-                            answers: ['Opción A', 'Opción B', 'Opción C', 'Opción D'],
-                            correctAnswer: 'Opción A'
-                        });
-                    }
+                // Manejar diferentes estructuras de respuesta
+                if (formData.questions && Array.isArray(formData.questions)) {
+                    questionsData = formData.questions;
+                } else if (formData.data?.questions) {
+                    questionsData = formData.data.questions;
                 }
 
-                setQuestions(sampleQuestions);
+                // Formatear preguntas para el componente
+                const formattedQuestions = questionsData.map(q => ({
+                    id: q.id,
+                    question: q.content || q.question || 'Pregunta sin contenido',
+                    answers: q.options ? q.options.map(opt => opt.content || opt.text || opt) : ['Opción A', 'Opción B', 'Opción C', 'Opción D'],
+                    correctAnswer: q.options ? q.options.find(opt => opt.isCorrect)?.content || q.options[0]?.content : 'Opción A'
+                }));
+
+                setQuestions(formattedQuestions.length > 0 ? formattedQuestions : [{
+                    id: 1,
+                    question: formData.title || 'Pregunta de ejemplo',
+                    answers: ['Opción A', 'Opción B', 'Opción C', 'Opción D'],
+                    correctAnswer: 'Opción A'
+                }]);
             }
         } catch (error) {
             console.error('Error fetching questions:', error);
+            setError('Error al cargar las preguntas. Verifica tu conexión.');
+            setQuestions([]);
         } finally {
             setLoading(false);
         }
@@ -165,11 +169,11 @@ export default function QuestionsScreen({ navigation, route }) {
         );
     }
 
-    if (questions.length === 0) {
+    if (error || questions.length === 0) {
         return (
             <View style={[styles.container, styles.emptyContainer]}>
                 <Text style={styles.emptyText}>
-                    {!formId ? 'No se especificó un formulario' : 'No hay preguntas disponibles'}
+                    {error || (!formId ? 'No se especificó un formulario' : 'No hay preguntas disponibles')}
                 </Text>
                 <TouchableOpacity 
                     style={styles.backButton}
@@ -177,6 +181,18 @@ export default function QuestionsScreen({ navigation, route }) {
                 >
                     <Text style={styles.backButtonText}>Volver</Text>
                 </TouchableOpacity>
+                {error && (
+                    <TouchableOpacity 
+                        style={[styles.backButton, { marginTop: 10, backgroundColor: '#FF9800' }]}
+                        onPress={() => {
+                            setError(null);
+                            setLoading(true);
+                            fetchFormQuestions();
+                        }}
+                    >
+                        <Text style={styles.backButtonText}>Reintentar</Text>
+                    </TouchableOpacity>
+                )}
             </View>
         );
     }
