@@ -1,11 +1,19 @@
 import { api } from '../api';
 
 /**
+ * @typedef {'ASC'|'DESC'} SortOrder
+ */
+
+/**
+ * @typedef {'id'|'expirationDate'|'isBlacklisted'|'createdAt'|'updatedAt'} FormTokenOrderBy
+ */
+
+/**
  * @typedef {Object} GetAllFormTokensParams
- * @property {string} [order='ASC'] - The order of the tokens (ASC or DESC).
- * @property {string} [orderBy='createdAt'] - The field to order by (default is 'createdAt').
- * @property {number} [page=1] - The page number for pagination (default is 1).
- * @property {number} [limit=10] - The number of tokens per page (default is 10).
+ * @property {SortOrder} [order='ASC'] - The order of the tokens.
+ * @property {FormTokenOrderBy} [orderBy='createdAt'] - The field to order by.
+ * @property {number} [page=1] - Page number.
+ * @property {number} [limit=10] - Tokens per page.
  */
 
 /**

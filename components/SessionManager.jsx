@@ -16,7 +16,7 @@ const SessionManager = () => {
           const payload = JSON.parse(atob(accessToken.split('.')[1]));
           const currentTime = Date.now() / 1000;
           const timeUntilExpiry = payload.exp - currentTime;
-          
+
           // Si quedan menos de 2 minutos, mostrar advertencia
           if (timeUntilExpiry < 120 && timeUntilExpiry > 0 && !sessionWarningShown) {
             setSessionWarningShown(true);

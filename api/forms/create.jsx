@@ -18,6 +18,8 @@ import { api } from '../api';
  * @property {string} title - The title of the form.
  * @property {string} description - The description of the form.
  * @property {boolean} isEnabled - Indicates if the form is enabled.
+ * @property {Date} startDate - The start date of the form.
+ * @property {Date} expirationDate - The expiration date of the form.
  * @property {Question[]} questions - The list of questions to include in the form.
  */
 
@@ -33,9 +35,9 @@ import { api } from '../api';
  * @param {CreateFormParams} params - Parameters for creating the form.
  * @returns {Promise<CreateFormResponse>} The result of the form creation.
  */
-export async function createForm({ title, description, isEnabled, questions }) {
+export async function createForm({ title, description, isEnabled, startDate, expirationDate, questions }) {
   try {
-    const response = await api.post(`/forms`, { title, description, isEnabled, questions });
+    const response = await api.post(`/forms`, { title, description, startDate, expirationDate, isEnabled, questions });
     console.log('Create form:', response.status === 201, response.status, response.data);
     return { success: response.status === 201, data: response.data };
   } catch (error) {

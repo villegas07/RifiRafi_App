@@ -1,7 +1,7 @@
 import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage'; // 1. Importar AsyncStorage
-import { refresh } from './auth/refresh';
-import { verifySession } from './auth/verify-session';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+
 
 let isRefreshing = false;
 let refreshSubscribers = [];
@@ -22,9 +22,10 @@ function onRefreshed(newToken) {
 }
 
 export const api = axios.create({
-  baseURL: 'https://rifi-rafi.onrender.com/api', // 2. Base URL corregida
+  baseURL: 'https://rifi-rafi.onrender.com/api',
+  withCredentials: true,
   validateStatus: function (status) {
-    return true;
+    return true; // Aceptar cualquier status, nunca rechazar la promesa
   },
   headers: {
     'x-lang': 'es',
@@ -32,67 +33,59 @@ export const api = axios.create({
   },
 });
 
-// 3. Interceptor de request con AsyncStorage
 api.interceptors.request.use(async (config) => {
   const token = await AsyncStorage.getItem('accessToken');
   config.headers.Authorization = token ? `Bearer ${token}` : '';
   return config;
 });
 
-// 4. Interceptor de response con AsyncStorage
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
 
-    // Solo intentar refresh para errores 401 y si no es una ruta de auth
-    if (error.response?.status === 401 && 
-        !originalRequest._retry && 
-        !originalRequest.url?.includes('/auth/')) {
-      
+    if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
       try {
-        // Si ya se está refrescando, esperar
         if (isRefreshing) {
-          return new Promise((resolve, reject) => {
+          return new Promise((resolve, _reject) => {
             subscribeTokenRefresh((newToken) => {
-              if (newToken) {
-                originalRequest.headers.Authorization = `Bearer ${newToken}`;
-                resolve(api(originalRequest));
-              } else {
-                reject(error);
-              }
+              originalRequest.headers.Authorization = `Bearer ${newToken}`;
+              resolve(api(originalRequest));
             });
           });
         }
 
         isRefreshing = true;
 
-        // Verificar si tenemos refresh token
+        // Verificar sesión
+        const verifyResponse = await api.get('/auth/verify-session');
+        if (verifyResponse.data?.success) return Promise.reject(error);
+
+        // Intentar refresh
         const refreshToken = await AsyncStorage.getItem('refreshToken');
         if (!refreshToken) {
-          await AsyncStorage.multiRemove(['accessToken', 'refreshToken']);
+          await AsyncStorage.removeItem('accessToken');
+          await AsyncStorage.removeItem('refreshToken');
           return Promise.reject(error);
         }
 
-        // Intentar refresh
-        const refreshResult = await refresh();
-        if (refreshResult.success) {
-          const newAccessToken = await AsyncStorage.getItem('accessToken');
-          onRefreshed(newAccessToken);
-          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+        const refreshResponse = await api.post('/auth/refresh', { token: refreshToken });
+        const refreshResult = { success: !!refreshResponse.data?.success, data: refreshResponse.data };
+        if (refreshResult.success && refreshResponse.data?.accessToken) {
+          await AsyncStorage.setItem('accessToken', refreshResponse.data.accessToken);
+          await AsyncStorage.setItem('refreshToken', refreshResponse.data.refreshToken);
+          onRefreshed(refreshResponse.data.accessToken);
+          originalRequest.headers.Authorization = `Bearer ${refreshResponse.data.accessToken}`;
           return api(originalRequest);
         } else {
-          // Refresh falló, limpiar tokens
-          await AsyncStorage.multiRemove(['accessToken', 'refreshToken']);
-          onRefreshed(null);
-          return Promise.reject(error);
+          await AsyncStorage.removeItem('accessToken');
+          await AsyncStorage.removeItem('refreshToken');
         }
       } catch (refreshError) {
-        // Error en el proceso de refresh
-        await AsyncStorage.multiRemove(['accessToken', 'refreshToken']);
-        onRefreshed(null);
+        await AsyncStorage.removeItem('accessToken');
+        await AsyncStorage.removeItem('refreshToken');
         console.error('Error during token refresh:', refreshError);
         return Promise.reject(refreshError);
       } finally {

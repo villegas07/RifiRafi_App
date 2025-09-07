@@ -1,65 +1,55 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   FlatList,
-  TouchableOpacity,
-  Image,
-  ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import PuzzleBackground from '../components/BackgroundSecon';
-import { getAllForms } from '../api/forms/get-all';
+import PromotionCard from '../components/PromotionCard';
+import LoadingState from '../components/LoadingState';
+import { useForms } from '../hooks/useForms';
 
 export default function PromotionsScreen({ navigation }) {
-  const [promotions, setPromotions] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { 
+    forms, 
+    loading, 
+    refreshing, 
+    error, 
+    refresh, 
+    retry 
+  } = useForms({ limit: 50 });
 
-  useEffect(() => {
-    fetchPromotions();
-  }, []);
+  // Formatear los formularios como promociones
+  const promotions = forms.map(form => ({
+    id: form.id,
+    text: form.title,
+    description: form.description,
+    image: require('../assets/test.png'),
+    validity: form.endDate 
+      ? `Válido hasta ${new Date(form.endDate).toLocaleDateString()}`
+      : 'Disponible ahora',
+    questions: form.questions,
+    category: form.category,
+    difficulty: form.difficulty,
+    formData: form.rawData
+  }));
 
-  const fetchPromotions = async () => {
-    try {
-      const response = await getAllForms({ limit: 20 });
-      if (response.success && response.data?.forms) {
-        const formattedPromotions = response.data.forms.map(form => ({
-          id: form.id,
-          text: form.title || 'Participa en esta trivia',
-          image: require('../assets/test.png'),
-          validity: `Válido hasta ${new Date(form.endDate).toLocaleDateString()}`,
-          screen: 'QuestionsScreen',
-          formData: form
-        }));
-        setPromotions(formattedPromotions);
-      }
-    } catch (error) {
-      console.error('Error fetching promotions:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
   const renderPromotion = ({ item }) => (
-    <TouchableOpacity
-      style={styles.promotionCard}
-      onPress={() => navigation.navigate('QuestionsScreen', { formId: item.id })}
-    >
-      <View style={styles.cardContent}>
-        <Text style={styles.promotionText}>{item.text}</Text>
-        <Image source={item.image} style={styles.promotionImage} />
-      </View>
-      <Text style={styles.validity}>{item.validity}</Text>
-    </TouchableOpacity>
+    <PromotionCard
+      promotion={item}
+      onPress={(promotion) => navigation.navigate('QuestionsScreen', { formId: promotion.id })}
+    />
   );
 
-  if (loading) {
+  if (loading && !refreshing) {
     return (
       <View style={styles.container}>
         <PuzzleBackground />
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#FFD700" />
-          <Text style={styles.loadingText}>Cargando promociones...</Text>
-        </View>
+        <LoadingState 
+          loading={true} 
+          loadingText="Cargando promociones..." 
+        />
       </View>
     );
   }
@@ -74,10 +64,23 @@ export default function PromotionsScreen({ navigation }) {
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContainer}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={refresh}
+            colors={['#FFD700']}
+            tintColor="#FFD700"
+          />
+        }
+
         ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No hay promociones disponibles</Text>
-          </View>
+          <LoadingState
+            error={error}
+            empty={!error && promotions.length === 0}
+            onRetry={retry}
+            emptyText="No hay promociones disponibles"
+            errorText={error}
+          />
         }
       />
     </View>
@@ -94,58 +97,6 @@ const styles = StyleSheet.create({
     paddingTop: 100,
     paddingBottom: 20,
   },
-  promotionCard: {
-    backgroundColor: '#fff',
-    borderRadius: 15,
-    padding: 15,
-    marginBottom: 15,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  cardContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  promotionText: {
-    fontSize: 16,
-    color: '#333',
-    fontWeight: 'bold',
-    flex: 1,
-    marginRight: 15,
-  },
-  promotionImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 10,
-  },
-  validity: {
-    fontSize: 12,
-    color: '#888',
-    marginTop: 10,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    marginTop: 10,
-    fontSize: 16,
-    color: '#666',
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingTop: 100,
-  },
-  emptyText: {
-    fontSize: 18,
-    color: '#666',
-    textAlign: 'center',
-  },
+
+
 });

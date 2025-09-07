@@ -1,9 +1,17 @@
 import { api } from '../api';
 
 /**
+ * @typedef {'ASC'|'DESC'} SortOrder
+ */
+
+/**
+ * @typedef {'id'|'username'|'displayName'|'createdAt'|'updatedAt'} UserOrderBy
+ */
+
+/**
  * @typedef {Object} GetAllUsersParams
- * @property {string} [order='ASC'] - The order of the results, either 'ASC' or 'DESC'.
- * @property {string} [orderBy='createdAt'] - The field to order by (default is 'createdAt').
+ * @property {SortOrder} [order='ASC'] - The order of the results, either 'ASC' or 'DESC'.
+ * @property {UserOrderBy} [orderBy='createdAt'] - The field to order by (default is 'createdAt').
  * @property {number} [page=1] - The page number for pagination (default is 1).
  * @property {number} [limit=10] - The number of items per page (default is 10).
  */

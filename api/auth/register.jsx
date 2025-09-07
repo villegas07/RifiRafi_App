@@ -1,5 +1,4 @@
 import { api } from '../api';
-import AsyncStorage from '@react-native-async-storage/async-storage'; // 1. Importar AsyncStorage
 
 /**
  * @typedef {Object} RegisterParams
@@ -41,12 +40,6 @@ export async function register({ username, displayName, firstName, lastName, cou
       email,
       password,
     });
-
-    // Guardar tokens si el registro fue exitoso
-    if (response.data.success && response.data.accessToken && response.data.refreshToken) {
-      await AsyncStorage.setItem('accessToken', response.data.accessToken);
-      await AsyncStorage.setItem('refreshToken', response.data.refreshToken);
-    }
 
     console.log('Register:', !!response.data.success, response.status, response.data);
     return { success: !!response.data.success, data: response.data };

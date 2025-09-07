@@ -1,5 +1,5 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { api } from '../api';
-import AsyncStorage from '@react-native-async-storage/async-storage'; // 1. Importar AsyncStorage
 
 /**
  * @typedef {Object} LoginParams

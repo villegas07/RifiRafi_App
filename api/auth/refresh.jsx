@@ -1,5 +1,10 @@
-import { api } from '../api';
-import AsyncStorage from '@react-native-async-storage/async-storage'; // 1. Importar AsyncStorage
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
+
+const authApi = axios.create({
+  baseURL: 'https://rifi-rafi.onrender.com/api',
+  headers: { 'Content-Type': 'application/json' }
+});
 
 /**
  * @typedef {Object} RefreshResponse
@@ -14,14 +19,12 @@ import AsyncStorage from '@react-native-async-storage/async-storage'; // 1. Impo
  */
 export async function refresh() {
   try {
-    // 2. Usar AsyncStorage para obtener el token
     const token = await AsyncStorage.getItem('refreshToken');
     if (!token) return { success: false, error: 'No refresh token found' };
 
-    const response = await api.post('/auth/refresh', { token });
+    const response = await authApi.post('/auth/refresh', { token });
 
     if (response.data.accessToken && response.data.refreshToken) {
-      // 3. Guardar tokens con AsyncStorage
       await AsyncStorage.setItem('accessToken', response.data.accessToken);
       await AsyncStorage.setItem('refreshToken', response.data.refreshToken);
     }
