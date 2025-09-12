@@ -28,9 +28,9 @@ import { api } from '../api';
  */
 export async function respondForm(id, { formToken, answers }) {
   try {
-    console.log('Enviando respuestas:', { id, formToken, answers });
-    const response = await api.post(`/forms/${id}/respond`, { formToken, answers });
-    console.log('Respond form - Status:', response.status, 'Data:', response.data);
+    const payload = { formToken, answers };
+    console.log('Payload enviado al servidor:', JSON.stringify(payload, null, 2));
+    const response = await api.post(`/forms/${id}/respond`, payload);
     
     if (response.status === 201 || response.status === 200) {
       return { success: true, data: response.data };

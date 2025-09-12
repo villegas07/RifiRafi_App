@@ -17,6 +17,7 @@ export default function QuestionsScreen({ navigation, route }) {
     const [userAnswers, setUserAnswers] = useState([]);
     const progressAnim = useRef(new Animated.Value(0)).current;
     const [timeSpent, setTimeSpent] = useState(0);
+    const answersSubmittedRef = useRef(false);
     const MAX_TIME = 15000;
 
     useEffect(() => {
@@ -43,18 +44,29 @@ export default function QuestionsScreen({ navigation, route }) {
                 }
 
                 // Formatear preguntas para el componente
-                const formattedQuestions = questionsData.map(q => ({
-                    id: q.id,
-                    question: q.content || q.question || 'Pregunta sin contenido',
-                    options: q.options || [],
-                    answers: q.options ? q.options.map(opt => opt.content || opt.text || opt) : ['Opción A', 'Opción B', 'Opción C', 'Opción D'],
-                    correctAnswer: q.options ? q.options.find(opt => opt.isCorrect)?.content || q.options[0]?.content : 'Opción A'
-                }));
+                const formattedQuestions = questionsData.map(q => {
+                    console.log('Pregunta original:', JSON.stringify(q, null, 2));
+                    return {
+                        id: q.id,
+                        question: q.content || q.question || 'Pregunta sin contenido',
+                        options: q.options || [],
+                        answers: q.options ? q.options.map(opt => opt.content || opt.text || opt) : ['Opción A', 'Opción B', 'Opción C', 'Opción D'],
+                        correctAnswer: q.options ? q.options.find(opt => opt.isCorrect)?.content || q.options[0]?.content : 'Opción A'
+                    };
+                });
 
                 // Obtener el token del formulario si está disponible
                 console.log('Estructura completa del formulario:', JSON.stringify(formData, null, 2));
                 
-                const token = formData.token || formData.formToken || formData.data?.token || formData.data?.formToken;
+                // Buscar token en diferentes ubicaciones posibles
+                const token = formData.content || 
+                             formData.token?.content || 
+                             formData.token || 
+                             formData.formToken || 
+                             formData.data?.content || 
+                             formData.data?.token?.content || 
+                             formData.data?.token || 
+                             formData.data?.formToken;
                 console.log('Token encontrado:', token);
                 setFormToken(token || null);
 
@@ -76,28 +88,49 @@ export default function QuestionsScreen({ navigation, route }) {
 
     // Función para enviar respuestas a la API
     const submitAnswers = async (answers) => {
+        if (answersSubmittedRef.current) {
+            console.log('Respuestas ya enviadas, saltando...');
+            return;
+        }
+        answersSubmittedRef.current = true;
+        console.log('Enviando respuestas por primera vez...');
+        
         try {
             const apiAnswers = answers.map((answer, index) => {
                 const question = questions[index];
                 if (!question) {
                     console.warn(`Pregunta ${index} no encontrada`);
-                    return {
-                        questionId: index.toString(),
-                        optionId: '1',
-                        timeSpent: answer.timeSpent || 0
-                    };
+                    return null;
                 }
                 
-                const selectedOption = question.options?.find(opt => 
-                    (opt.content || opt.text) === answer.userAnswer
-                ) || null;
+                let selectedOption = null;
+                
+                if (answer.userAnswer !== "No respondida") {
+                    selectedOption = question.options?.find(opt => 
+                        (opt.content || opt.text) === answer.userAnswer
+                    );
+                }
+                
+                // Si no se encontró la opción, usar la primera opción disponible
+                const optionToUse = selectedOption || question.options?.[0];
+                
+                console.log(`Pregunta ${index + 1}:`, {
+                    userAnswer: answer.userAnswer,
+                    selectedOptionId: optionToUse?.id,
+                    isCorrect: selectedOption?.isCorrect || false
+                });
                 
                 return {
                     questionId: question.id?.toString() || index.toString(),
-                    optionId: selectedOption?.id?.toString() || '1',
+                    optionId: optionToUse?.id?.toString() || '1',
                     timeSpent: answer.timeSpent || 0
                 };
             }).filter(Boolean);
+
+            // Calcular el score: 1 punto por respuesta correcta
+            console.log('Respuestas para calcular score:', answers.map(a => ({ userAnswer: a.userAnswer, correctAnswer: a.correctAnswer, isCorrect: a.isCorrect })));
+            const score = answers.filter(answer => answer.isCorrect === true).length;
+            console.log('Score calculado:', score, 'Total respuestas:', answers.length);
 
             // Generar token si no existe
             let tokenToUse = formToken;
@@ -105,11 +138,9 @@ export default function QuestionsScreen({ navigation, route }) {
                 console.log('Generando token para el formulario...');
                 const tokenResponse = await generateFormToken(formId);
                 if (tokenResponse.success) {
-                    // Buscar el token en diferentes ubicaciones de la respuesta
-                    tokenToUse = tokenResponse.data?.token || 
-                                tokenResponse.data?.formToken || 
-                                tokenResponse.data?.data?.token ||
-                                tokenResponse.data?.data?.formToken;
+                    // El token está en data.token.content según la respuesta
+                    const tokenData = tokenResponse.data;
+                    tokenToUse = tokenData?.token?.content || tokenData?.content || tokenData?.token || tokenData?.formToken;
                     console.log('Token generado exitosamente:', tokenToUse);
                     
                     if (!tokenToUse) {
@@ -122,8 +153,15 @@ export default function QuestionsScreen({ navigation, route }) {
                 }
             }
 
+            // Asegurar que tokenToUse sea solo el string del token
+            const finalToken = typeof tokenToUse === 'object' ? tokenToUse.content : tokenToUse;
+
+            console.log('=== DATOS ENVIADOS AL SERVIDOR ===');
+            console.log('FormToken:', finalToken);
+            console.log('Answers completas:', JSON.stringify(apiAnswers, null, 2));
+            console.log('=== FIN DATOS ===');
             const response = await respondForm(formId, {
-                formToken: tokenToUse,
+                formToken: finalToken,
                 answers: apiAnswers
             });
 
@@ -135,7 +173,7 @@ export default function QuestionsScreen({ navigation, route }) {
             }
         } catch (error) {
             console.error('Error submitting answers:', error);
-            console.error('Datos enviados:', { formId, formToken, answers: apiAnswers });
+            console.error('Datos enviados:', { formToken: finalToken, answers: apiAnswers, score: score });
         }
     };
 

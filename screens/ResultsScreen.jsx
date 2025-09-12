@@ -11,7 +11,7 @@ const ResultsScreen = ({ route, navigation }) => {
     const { results } = route.params;
 
     const correctAnswers = results.filter((result) => result.isCorrect).length;
-    const totalPoints = correctAnswers * 3;
+    const totalPoints = correctAnswers * 1;
     const totalTime = results.reduce((sum, result) => sum + result.timeSpent, 0);
 
     useEffect(() => {

@@ -25,9 +25,7 @@ export async function generateFormToken(id, { userId, expirationDate } = {}) {
     if (userId) payload.userId = userId;
     if (expirationDate) payload.expirationDate = expirationDate;
     
-    console.log('Generando token para formulario:', id, payload);
     const response = await api.post(`/forms/${id}/tokens`, payload);
-    console.log('Generate form token - Status:', response.status, 'Data:', response.data);
     
     if (response.status === 200 || response.status === 201) {
       return { success: true, data: response.data };
