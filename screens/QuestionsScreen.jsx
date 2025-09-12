@@ -180,7 +180,9 @@ export default function QuestionsScreen({ navigation, route }) {
     // Función para manejar la selección de respuesta
     const handleAnswer = async (answer) => {
         const currentQuestion = questions[currentQuestionIndex];
-        const isCorrect = answer === currentQuestion.correctAnswer;
+        // Buscar la opción seleccionada en las opciones de la pregunta
+        const selectedOption = currentQuestion.options?.find(opt => opt.content === answer);
+        const isCorrect = selectedOption?.isCorrect || false;
 
         // Guardar la respuesta del usuario
         setUserAnswers((prev) => [
@@ -233,12 +235,13 @@ export default function QuestionsScreen({ navigation, route }) {
                 clearInterval(timer); // Detener el temporizador
 
                 // Guardar la respuesta como "no respondida"
+                const currentQuestion = questions[currentQuestionIndex];
                 setUserAnswers((prev) => [
                     ...prev,
                     {
-                        question: questions[currentQuestionIndex].question,
+                        question: currentQuestion.question,
                         userAnswer: "No respondida",
-                        correctAnswer: questions[currentQuestionIndex].correctAnswer,
+                        correctAnswer: currentQuestion.correctAnswer,
                         timeSpent: MAX_TIME,
                         isCorrect: false,
                     },
@@ -251,10 +254,11 @@ export default function QuestionsScreen({ navigation, route }) {
                     progressAnim.setValue(0); // Reiniciar la animación de la barra de progreso
                 } else {
                     // Enviar respuestas a la API antes de navegar
+                    const currentQuestion = questions[currentQuestionIndex];
                     const finalAnswers = [...userAnswers, {
-                        question: questions[currentQuestionIndex].question,
+                        question: currentQuestion.question,
                         userAnswer: "No respondida",
-                        correctAnswer: questions[currentQuestionIndex].correctAnswer,
+                        correctAnswer: currentQuestion.correctAnswer,
                         timeSpent: MAX_TIME,
                         isCorrect: false,
                     }];
