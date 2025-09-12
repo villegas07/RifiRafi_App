@@ -167,9 +167,11 @@ export default function QuestionsScreen({ navigation, route }) {
 
             if (response.success) {
                 console.log('Respuestas enviadas correctamente:', response.data);
+                return response.data; // Retornar los datos del servidor
             } else {
                 console.error('Error al enviar respuestas:', response.error || 'Error desconocido');
                 console.error('Respuesta completa:', response);
+                return null;
             }
         } catch (error) {
             console.error('Error submitting answers:', error);
@@ -215,8 +217,12 @@ export default function QuestionsScreen({ navigation, route }) {
             ];
 
             // Enviar respuestas a la API antes de navegar
-            submitAnswers(updatedUserAnswers);
-            navigation.navigate("ResultsScreen", { results: updatedUserAnswers, formId });
+            const serverResponse = await submitAnswers(updatedUserAnswers);
+            navigation.navigate("ResultsScreen", { 
+                results: updatedUserAnswers, 
+                formId,
+                serverScore: serverResponse?.score || serverResponse?.data?.score || null
+            });
         }
     };
 
@@ -262,8 +268,13 @@ export default function QuestionsScreen({ navigation, route }) {
                         timeSpent: MAX_TIME,
                         isCorrect: false,
                     }];
-                    submitAnswers(finalAnswers);
-                    navigation.navigate("ResultsScreen", { results: finalAnswers, formId });
+                    submitAnswers(finalAnswers).then(serverResponse => {
+                        navigation.navigate("ResultsScreen", { 
+                            results: finalAnswers, 
+                            formId,
+                            serverScore: serverResponse?.score || serverResponse?.data?.score || null
+                        });
+                    });
                 }
             }
         }, 10); // Actualizar cada 10 milisegundos

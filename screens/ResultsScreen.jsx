@@ -8,10 +8,10 @@ import { useUser } from '../hooks/useUser';
 
 const ResultsScreen = ({ route, navigation }) => {
     const { user } = useUser();
-    const { results } = route.params;
+    const { results, serverScore } = route.params;
 
     const correctAnswers = results.filter((result) => result.isCorrect).length;
-    const totalPoints = correctAnswers * 1;
+    const totalPoints = serverScore !== null ? serverScore : correctAnswers * 1;
     const totalTime = results.reduce((sum, result) => sum + result.timeSpent, 0);
 
     useEffect(() => {
