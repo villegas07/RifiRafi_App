@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Alert } from 'react-native';
 import Backgrounfour from '../components/Backgrounfour';
 import UserHeader from '../components/UserHeader';
 import RechargeOption from '../components/RechargeOption';
@@ -13,15 +13,22 @@ export default function PaymentScreen({ navigation }) {
         { id: 1, points: 'RF 10', amount: 2000 },
         { id: 2, points: 'RF 50', amount: 10000 },
         { id: 3, points: 'RF 150', amount: 30000 },
-        { id: 3, points: 'RF 200', amount: 40000 },
-        { id: 3, points: 'RF 250', amount: 50000 },
-        { id: 3, points: 'RF 300', amount: 60000 },
+        { id: 4, points: 'RF 200', amount: 40000 },
+        { id: 5, points: 'RF 250', amount: 50000 },
+        { id: 6, points: 'RF 300', amount: 60000 },
     ];
 
     const handlePayment = () => {
         const paymentAmount = customAmount || selectedAmount;
         if (paymentAmount) {
+            // Validar monto mínimo
+            if (paymentAmount < 1000) {
+                Alert.alert('Monto inválido', 'El monto mínimo de recarga es $1,000 COP');
+                return;
+            }
             navigation.navigate('WompiWidgetScreen', { amount: paymentAmount });
+        } else {
+            Alert.alert('Selecciona un monto', 'Por favor selecciona o ingresa un monto para recargar');
         }
     };
 
