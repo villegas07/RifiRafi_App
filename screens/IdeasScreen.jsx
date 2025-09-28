@@ -1,10 +1,26 @@
-import React from 'react';
-import { View, Text, StyleSheet, Image, Dimensions, ScrollView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, Image, Dimensions, ScrollView, ActivityIndicator } from 'react-native';
 import FloatingMenuBar from '../components/FloatingMenuBar';
 import BackgroundTop from '../components/BackgroundTop';
 import ProfileButton from '../components/ProfileButton';
+import { getFormScores } from '../api/forms/get-scores';
 
 const { width } = Dimensions.get('window');
+
+// Componente para manejar imágenes de perfil con fallback
+const ProfileImage = ({ source, style, defaultImage }) => {
+    const [imageError, setImageError] = useState(false);
+    
+    const imageSource = imageError || !source?.uri ? defaultImage : source;
+    
+    return (
+        <Image 
+            source={imageSource}
+            style={style}
+            onError={() => setImageError(true)}
+        />
+    );
+};
 
 const mockData = [
     { name: 'Brayan Villegas', time: '00:42:18', image: require('../assets/Vacaciones.jpg') },
@@ -28,9 +44,57 @@ const menuItems = [
     { screen: 'Favorites', icon: require('../assets/historia.png'), iconType: 'image', color: '#E91E63' },
 ];
 
-export default function TopScreen({ navigation }) {
-    const topThree = mockData.slice(0, 3);
-    const remainingList = mockData.slice(3);
+export default function TopScreen({ navigation, route }) {
+    const [scores, setScores] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    
+    // Obtener formId de los parámetros de navegación o usar uno por defecto
+    const formId = route?.params?.formId || 'default-form-id';
+    
+    useEffect(() => {
+        fetchFormScores();
+    }, [formId]);
+    
+    const fetchFormScores = async () => {
+        try {
+            setLoading(true);
+            const response = await getFormScores(formId);
+            
+            if (response.success) {
+                // Formatear datos del servidor
+                const formattedScores = response.data.scores?.map((score, index) => ({
+                    name: score.user?.displayName || score.user?.username || `Usuario ${index + 1}`,
+                    time: formatTime(score.totalTime || 0),
+                    score: score.score || 0,
+                    image: score.user?.picture ? { uri: score.user.picture } : require('../assets/Vacaciones.jpg'),
+                    hasProfilePicture: !!score.user?.picture
+                })) || [];
+                
+                setScores(formattedScores);
+            } else {
+                setError(response.error);
+                // Usar datos mock como fallback
+                setScores(mockData);
+            }
+        } catch (err) {
+            console.error('Error fetching scores:', err);
+            setError('Error al cargar puntajes');
+            setScores(mockData);
+        } finally {
+            setLoading(false);
+        }
+    };
+    
+    const formatTime = (milliseconds) => {
+        const minutes = Math.floor(milliseconds / 60000);
+        const seconds = Math.floor((milliseconds % 60000) / 1000);
+        const ms = Math.floor((milliseconds % 1000) / 10);
+        return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}:${ms.toString().padStart(2, '0')}`;
+    };
+    
+    const topThree = scores.slice(0, 3);
+    const remainingList = scores.slice(3);
 
     return (
         <View style={styles.container}>
@@ -49,23 +113,41 @@ export default function TopScreen({ navigation }) {
                 />
             </View>
 
+            {loading ? (
+                <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color="#4CAF50" />
+                    <Text style={styles.loadingText}>Cargando puntajes...</Text>
+                </View>
+            ) : (
             <ScrollView contentContainerStyle={styles.scrollContainer}>
                 {/* Podio */}
                 <View style={styles.podiumContainer}>
                     <View style={styles.secondPlace}>
-                        <Image source={topThree[1].image} style={styles.podiumImage} />
+                        <ProfileImage 
+                            source={topThree[1].image} 
+                            style={styles.podiumImage}
+                            defaultImage={require('../assets/Vacaciones.jpg')}
+                        />
                         <Text style={styles.podiumName}>{topThree[1].name}</Text>
                         <Image source={require('../assets/2.png')} style={styles.podiumTrophy} />
                         <Text style={styles.positionTime}>{topThree[1].time}</Text>
                     </View>
                     <View style={styles.firstPlace}>
-                        <Image source={topThree[0].image} style={styles.podiumImage} />
+                        <ProfileImage 
+                            source={topThree[0].image} 
+                            style={styles.podiumImage}
+                            defaultImage={require('../assets/Vacaciones.jpg')}
+                        />
                         <Text style={styles.podiumName}>{topThree[0].name}</Text>
                         <Image source={require('../assets/trofeo.png')} style={styles.podiumTrophy} />
                         <Text style={styles.positionTime}>{topThree[0].time}</Text>
                     </View>
                     <View style={styles.thirdPlace}>
-                        <Image source={topThree[2].image} style={styles.podiumImage} />
+                        <ProfileImage 
+                            source={topThree[2].image} 
+                            style={styles.podiumImage}
+                            defaultImage={require('../assets/Vacaciones.jpg')}
+                        />
                         <Text style={styles.podiumName}>{topThree[2].name}</Text>
                         <Image source={require('../assets/3.png')} style={styles.podiumTrophy} />
                         <Text style={styles.positionTime}>{topThree[2].time}</Text>
@@ -77,13 +159,18 @@ export default function TopScreen({ navigation }) {
                     {remainingList.map((item, index) => (
                         <View key={index} style={styles.listItem}>
                             <Text style={styles.listPosition}>{index + 4}</Text>
-                            <Image source={item.image} style={styles.listImage} />
+                            <ProfileImage 
+                                source={item.image} 
+                                style={styles.listImage}
+                                defaultImage={require('../assets/Vacaciones.jpg')}
+                            />
                             <Text style={styles.listText}>{item.name}</Text>
                             <Text style={styles.listTime}>{item.time}</Text>
                         </View>
                     ))}
                 </View>
             </ScrollView>
+            )}
 
             {/* Menú flotante */}
             <View style={styles.menuContainer}>
@@ -220,12 +307,22 @@ const styles = StyleSheet.create({
         width: '100%',
     },
     profileButton: {
-        top: 25, //
+        top: 25,
         right: -10,
         width: 50,
         height: 50,
         borderRadius: 30,
         marginLeft: 50,
     },
-
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingTop: 100,
+    },
+    loadingText: {
+        marginTop: 10,
+        fontSize: 16,
+        color: '#666',
+    },
 });
