@@ -20,15 +20,51 @@ export default function PromotionsScreen({ navigation }) {
     retry 
   } = useForms({ limit: 50 });
 
-  // Formatear los formularios como promociones
-  const promotions = forms.map(form => ({
+  // Formatear fechas
+  const formatDateRange = (startDate, endDate) => {
+    const formatDate = (date) => {
+      if (!date) return null;
+      return new Date(date).toLocaleDateString('es-ES', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      });
+    };
+    
+    const start = formatDate(startDate);
+    const end = formatDate(endDate);
+    
+    if (start && end) {
+      return `Válido del ${start} al ${end}`;
+    } else if (end) {
+      return `Válido hasta ${end}`;
+    } else if (start) {
+      return `Disponible desde ${start}`;
+    }
+    return 'Disponible ahora';
+  };
+
+  // Filtrar formularios activos y formatear como promociones
+  const now = new Date();
+  const activePromotions = forms.filter(form => {
+    const startDate = form.startDate ? new Date(form.startDate) : null;
+    const endDate = form.expirationDate ? new Date(form.expirationDate) : (form.endDate ? new Date(form.endDate) : null);
+    
+    // Si hay fecha de inicio, debe haber comenzado
+    if (startDate && now < startDate) return false;
+    
+    // Si hay fecha de fin, no debe haber expirado
+    if (endDate && now > endDate) return false;
+    
+    return true;
+  });
+
+  const promotions = activePromotions.map(form => ({
     id: form.id,
     text: form.title,
     description: form.description,
     image: require('../assets/test.png'),
-    validity: form.endDate 
-      ? `Válido hasta ${new Date(form.endDate).toLocaleDateString()}`
-      : 'Disponible ahora',
+    validity: formatDateRange(form.startDate, form.expirationDate || form.endDate),
     questions: form.questions,
     category: form.category,
     difficulty: form.difficulty,

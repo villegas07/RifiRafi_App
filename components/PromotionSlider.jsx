@@ -22,15 +22,54 @@ export default function PromotionSlider({ onPress }) {
         }
     }, [promotions.length]);
 
+    const formatDateRange = (startDate, endDate) => {
+        const formatDate = (date) => {
+            if (!date) return null;
+            return new Date(date).toLocaleDateString('es-ES', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+        };
+        
+        const start = formatDate(startDate);
+        const end = formatDate(endDate);
+        
+        if (start && end) {
+            return `Válido del ${start} al ${end}`;
+        } else if (end) {
+            return `Válido hasta ${end}`;
+        } else if (start) {
+            return `Disponible desde ${start}`;
+        }
+        return 'Disponible ahora';
+    };
+
     const fetchPromotions = async () => {
         try {
             const response = await getAllForms({ limit: 10 });
             if (response.success && response.data?.forms) {
-                const formattedPromotions = response.data.forms.map(form => ({
+                const now = new Date();
+                
+                // Filtrar formularios activos
+                const activeForms = response.data.forms.filter(form => {
+                    const startDate = form.startDate ? new Date(form.startDate) : null;
+                    const endDate = form.expirationDate ? new Date(form.expirationDate) : (form.endDate ? new Date(form.endDate) : null);
+                    
+                    // Si hay fecha de inicio, debe haber comenzado
+                    if (startDate && now < startDate) return false;
+                    
+                    // Si hay fecha de fin, no debe haber expirado
+                    if (endDate && now > endDate) return false;
+                    
+                    return true;
+                });
+                
+                const formattedPromotions = activeForms.map(form => ({
                     id: form.id,
                     text: form.title || 'Participa en esta trivia',
-                    image: require('../assets/test.png'), // Imagen por defecto
-                    validity: `Válido hasta ${new Date(form.endDate).toLocaleDateString()}`,
+                    image: require('../assets/test.png'),
+                    validity: formatDateRange(form.startDate, form.expirationDate || form.endDate),
                     formData: form
                 }));
                 setPromotions(formattedPromotions);
