@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated, LayoutAnimation, Platform, UIManager } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import Avatar from './Avatar';
 
 // Habilitar LayoutAnimation en Android
 if (Platform.OS === 'android') {
@@ -49,6 +50,17 @@ export default function ExpandableCommentCard({ comment, style }) {
 
     const shouldShowReadMore = comment.content && comment.content.length > 150;
 
+    const getUserFullName = () => {
+        const user = comment.user;
+        if (!user) return 'Usuario Anónimo';
+        
+        if (user.firstName && user.lastName) {
+            return `${user.firstName} ${user.lastName}`;
+        }
+        
+        return user.name || user.firstName || user.username || 'Usuario';
+    };
+
     const toggleExpansion = () => {
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
         setIsExpanded(!isExpanded);
@@ -63,13 +75,18 @@ export default function ExpandableCommentCard({ comment, style }) {
             {/* Header con usuario y calificación */}
             <View style={styles.header}>
                 <View style={styles.userInfo}>
-                    <View style={styles.avatarContainer}>
-                        <Ionicons name="person" size={20} color="#4CAF50" />
-                    </View>
+                    <Avatar 
+                        user={comment.user} 
+                        size={44} 
+                        style={styles.userAvatar}
+                    />
                     <View style={styles.userDetails}>
-                        <Text style={styles.userName}>
-                            {comment.user?.name || comment.user?.firstName || 'Usuario'}
-                        </Text>
+                        <View style={styles.userNameContainer}>
+                            <Text style={styles.userName}>
+                                {getUserFullName()}
+                            </Text>
+                            <Ionicons name="checkmark-circle" size={14} color="#4CAF50" />
+                        </View>
                         <Text style={styles.formTitle}>
                             {comment.formTitle}
                         </Text>
@@ -133,28 +150,34 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         flex: 1,
     },
-    avatarContainer: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: 'rgba(76, 175, 80, 0.1)',
-        justifyContent: 'center',
-        alignItems: 'center',
+    userAvatar: {
         marginRight: 12,
+        elevation: 2,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.2,
+        shadowRadius: 2,
     },
     userDetails: {
         flex: 1,
     },
+    userNameContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+    },
     userName: {
-        fontSize: 15,
-        fontWeight: '600',
-        color: '#333',
-        marginBottom: 2,
+        fontSize: 16,
+        fontWeight: '700',
+        color: '#2c3e50',
+        marginBottom: 3,
+        letterSpacing: 0.3,
     },
     formTitle: {
         fontSize: 12,
-        color: '#666',
+        color: '#7f8c8d',
         fontStyle: 'italic',
+        fontWeight: '500',
     },
     ratingContainer: {
         flexDirection: 'row',
