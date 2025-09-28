@@ -97,9 +97,9 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     headerContainer: {
-        marginTop: 20,
+        marginTop: 90,
         marginHorizontal: 20,
-        marginBottom: 20,
+        marginBottom: 5,
     },
     content: {
         padding: 20,
