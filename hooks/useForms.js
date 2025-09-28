@@ -44,6 +44,8 @@ export const useForms = (initialParams = {}) => {
             title: form.title || form.name || 'Trivia sin título',
             description: form.description || '',
             questions: typeof form.questions === 'object' ? (form.questions?.length || 5) : (form.questions || 5),
+            startDate: form.startDate,
+            expirationDate: form.expirationDate,
             endDate: form.endDate,
             category: typeof form.category === 'object' ? (form.category?.name || '') : (form.category || ''),
             difficulty: typeof form.difficulty === 'object' ? (form.difficulty?.name || '') : (form.difficulty || ''),
