@@ -62,14 +62,24 @@ export default function TopScreen({ navigation, route }) {
             const response = await getFormScores(formId);
             
             if (response.success) {
+                console.log('Datos recibidos del servidor:', response.data);
+                
                 // Formatear datos del servidor
-                const formattedScores = response.data.scores?.map((score, index) => ({
-                    name: score.user?.displayName || score.user?.username || `Usuario ${index + 1}`,
-                    time: formatTime(score.totalTime || 0),
-                    score: score.score || 0,
-                    image: score.user?.picture ? { uri: score.user.picture } : require('../assets/Vacaciones.jpg'),
-                    hasProfilePicture: !!score.user?.picture
-                })) || [];
+                const formattedScores = response.data.scores?.map((score, index) => {
+                    console.log(`Score ${index}:`, {
+                        totalTime: score.totalTime,
+                        timeSpent: score.timeSpent,
+                        user: score.user?.displayName
+                    });
+                    
+                    return {
+                        name: score.user?.displayName || score.user?.username || `Usuario ${index + 1}`,
+                        time: formatTime(score.totalTime || score.timeSpent || 0),
+                        score: score.score || 0,
+                        image: score.user?.picture ? { uri: score.user.picture } : require('../assets/Vacaciones.jpg'),
+                        hasProfilePicture: !!score.user?.picture
+                    };
+                }) || [];
                 
                 setScores(formattedScores);
             } else {
@@ -86,11 +96,28 @@ export default function TopScreen({ navigation, route }) {
         }
     };
     
-    const formatTime = (milliseconds) => {
-        const minutes = Math.floor(milliseconds / 60000);
-        const seconds = Math.floor((milliseconds % 60000) / 1000);
-        const ms = Math.floor((milliseconds % 1000) / 10);
-        return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}:${ms.toString().padStart(2, '0')}`;
+    const formatTime = (timeValue) => {
+        // Manejar diferentes formatos de tiempo del servidor
+        if (!timeValue || timeValue === 0) return '00:00:00';
+        
+        let totalMs = 0;
+        
+        // Si es un string, podría ser formato HH:MM:SS o timestamp
+        if (typeof timeValue === 'string') {
+            if (timeValue.includes(':')) {
+                return timeValue; // Ya está formateado
+            }
+            totalMs = parseInt(timeValue);
+        } else {
+            totalMs = timeValue;
+        }
+        
+        // Convertir a minutos, segundos y centésimas
+        const minutes = Math.floor(totalMs / 60000);
+        const seconds = Math.floor((totalMs % 60000) / 1000);
+        const centiseconds = Math.floor((totalMs % 1000) / 10);
+        
+        return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}:${centiseconds.toString().padStart(2, '0')}`;
     };
     
     const topThree = scores.slice(0, 3);
