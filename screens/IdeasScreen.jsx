@@ -76,10 +76,22 @@ export default function TopScreen({ navigation, route }) {
                         name: score.user?.displayName || score.user?.username || `Usuario ${index + 1}`,
                         time: formatTime(score.totalTime || score.timeSpent || 0),
                         score: score.score || 0,
+                        correctAnswers: score.correctAnswers || score.score || 0,
+                        totalTime: score.totalTime || score.timeSpent || 0,
                         image: score.user?.picture ? { uri: score.user.picture } : require('../assets/Vacaciones.jpg'),
                         hasProfilePicture: !!score.user?.picture
                     };
                 }) || [];
+                
+                // Ordenar por aciertos (descendente) y luego por tiempo (ascendente)
+                formattedScores.sort((a, b) => {
+                    // Primero por cantidad de aciertos (más aciertos = mejor posición)
+                    if (b.correctAnswers !== a.correctAnswers) {
+                        return b.correctAnswers - a.correctAnswers;
+                    }
+                    // Si tienen los mismos aciertos, ordenar por tiempo (menor tiempo = mejor posición)
+                    return a.totalTime - b.totalTime;
+                });
                 
                 setScores(formattedScores);
             } else {
@@ -157,7 +169,8 @@ export default function TopScreen({ navigation, route }) {
                         />
                         <Text style={styles.podiumName}>{topThree[1].name}</Text>
                         <Image source={require('../assets/2.png')} style={styles.podiumTrophy} />
-                        <Text style={styles.positionTime}>{topThree[1].time}</Text>
+                        <Text style={styles.positionTime}>{topThree[1].correctAnswers} aciertos</Text>
+                        <Text style={styles.positionSubTime}>{topThree[1].time}</Text>
                     </View>
                     <View style={styles.firstPlace}>
                         <ProfileImage 
@@ -167,7 +180,8 @@ export default function TopScreen({ navigation, route }) {
                         />
                         <Text style={styles.podiumName}>{topThree[0].name}</Text>
                         <Image source={require('../assets/trofeo.png')} style={styles.podiumTrophy} />
-                        <Text style={styles.positionTime}>{topThree[0].time}</Text>
+                        <Text style={styles.positionTime}>{topThree[0].correctAnswers} aciertos</Text>
+                        <Text style={styles.positionSubTime}>{topThree[0].time}</Text>
                     </View>
                     <View style={styles.thirdPlace}>
                         <ProfileImage 
@@ -177,7 +191,8 @@ export default function TopScreen({ navigation, route }) {
                         />
                         <Text style={styles.podiumName}>{topThree[2].name}</Text>
                         <Image source={require('../assets/3.png')} style={styles.podiumTrophy} />
-                        <Text style={styles.positionTime}>{topThree[2].time}</Text>
+                        <Text style={styles.positionTime}>{topThree[2].correctAnswers} aciertos</Text>
+                        <Text style={styles.positionSubTime}>{topThree[2].time}</Text>
                     </View>
                 </View>
 
@@ -191,7 +206,10 @@ export default function TopScreen({ navigation, route }) {
                                 style={styles.listImage}
                                 defaultImage={require('../assets/Vacaciones.jpg')}
                             />
-                            <Text style={styles.listText}>{item.name}</Text>
+                            <View style={styles.listTextContainer}>
+                                <Text style={styles.listText}>{item.name}</Text>
+                                <Text style={styles.listScore}>{item.correctAnswers} aciertos</Text>
+                            </View>
                             <Text style={styles.listTime}>{item.time}</Text>
                         </View>
                     ))}
@@ -290,7 +308,14 @@ const styles = StyleSheet.create({
         color: '#FFF',
     },
     positionTime: {
-        fontSize: 14,
+        fontSize: 12,
+        color: '#FFF',
+        fontWeight: 'bold',
+        position: 'absolute',
+        bottom: 25,
+    },
+    positionSubTime: {
+        fontSize: 10,
         color: '#FFF',
         position: 'absolute',
         bottom: 10,
@@ -319,10 +344,18 @@ const styles = StyleSheet.create({
         borderRadius: 25,
         marginRight: 10,
     },
-    listText: {
+    listTextContainer: {
         flex: 1,
+    },
+    listText: {
         fontSize: 16,
         fontWeight: 'bold',
+        color: '#333',
+    },
+    listScore: {
+        fontSize: 12,
+        color: '#4CAF50',
+        fontWeight: '600',
     },
     listTime: {
         fontSize: 14,
