@@ -22,6 +22,7 @@ import WompiWidgetScreen from './screens/WompiWidgetScreen';
 import ResultsScreen from './screens/ResultsScreen';
 import ForgotYourPasswordScreen from './screens/ForgotYourPasswordScreen';
 import PromotionsScreen from './screens/PromotionsScreen';
+import CommentsScreen from './screens/CommentsScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -162,6 +163,13 @@ export default function App() {
             headerTransparent: true,
             headerTitle: "Rifi-Rafis disponibles",
             headerTintColor: "#000",
+          }}
+        />
+        <Stack.Screen
+          name="CommentsScreen"
+          component={CommentsScreen}
+          options={{
+            headerShown: false,
           }}
         />
 

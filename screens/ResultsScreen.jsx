@@ -1,18 +1,50 @@
-import React, { useEffect } from "react";
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, BackHandler } from "react-native";
+import React, { useEffect, useState } from "react";
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, BackHandler, Alert } from "react-native";
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import Backgrounfour from '../components/Backgrounfour';
 import Avatar from '../components/Avatar';
+import CommentModal from '../components/CommentModal';
+import { checkUserComment } from '../api/forms/check-user-comment';
 import { useUser } from '../hooks/useUser';
 
 const ResultsScreen = ({ route, navigation }) => {
     const { user } = useUser();
-    const { results, serverScore } = route.params;
+    const { results, serverScore, formId, formTitle } = route.params;
+    const [showCommentModal, setShowCommentModal] = useState(false);
+    const [hasAlreadyCommented, setHasAlreadyCommented] = useState(false);
 
     const correctAnswers = results.filter((result) => result.isCorrect).length;
     const totalPoints = serverScore !== null ? serverScore : correctAnswers * 1;
     const totalTime = results.reduce((sum, result) => sum + result.timeSpent, 0);
+
+    const handleCommentButtonPress = async () => {
+        if (hasAlreadyCommented) {
+            Alert.alert(
+                'Comentario existente',
+                'Ya has realizado un comentario para esta trivia. Solo se permite un comentario por usuario.\n\n¿Te gustaría ver tus comentarios?',
+                [
+                    { text: 'Cancelar', style: 'cancel' },
+                    { 
+                        text: 'Ver mis comentarios', 
+                        onPress: () => navigation.navigate('Favorites')
+                    }
+                ]
+            );
+            return;
+        }
+        
+        setShowCommentModal(true);
+    };
+
+    const handleCommentAdded = () => {
+        setHasAlreadyCommented(true);
+        // Aquí podrías mostrar un mensaje de éxito adicional si quisieras
+    };
+
+    const handleNavigateToComments = () => {
+        navigation.navigate('Favorites');
+    };
 
     useEffect(() => {
         const backAction = () => {
@@ -116,16 +148,48 @@ const ResultsScreen = ({ route, navigation }) => {
                     )}
                 />
                 
-                <TouchableOpacity 
-                    style={styles.homeButton}
-                    onPress={() => navigation.reset({
-                        index: 0,
-                        routes: [{ name: 'Home' }],
-                    })}
-                >
-                    <Ionicons name="home" size={24} color="white" />
-                    <Text style={styles.homeButtonText}>Ir a Inicio</Text>
-                </TouchableOpacity>
+                {/* Botones de acción */}
+                <View style={styles.actionButtons}>
+                    {formId && (
+                        <TouchableOpacity 
+                            style={[
+                                styles.commentsButton, 
+                                hasAlreadyCommented && styles.commentsButtonDisabled
+                            ]}
+                            onPress={handleCommentButtonPress}
+                        >
+                            <Ionicons 
+                                name={hasAlreadyCommented ? "checkmark-circle" : "create"} 
+                                size={20} 
+                                color="white" 
+                            />
+                            <Text style={styles.commentsButtonText}>
+                                {hasAlreadyCommented ? "Ya comentaste" : "Hacer un comentario"}
+                            </Text>
+                        </TouchableOpacity>
+                    )}
+                    
+                    <TouchableOpacity 
+                        style={styles.homeButton}
+                        onPress={() => navigation.reset({
+                            index: 0,
+                            routes: [{ name: 'Home' }],
+                        })}
+                    >
+                        <Ionicons name="home" size={24} color="white" />
+                        <Text style={styles.homeButtonText}>Ir a Inicio</Text>
+                    </TouchableOpacity>
+                </View>
+
+                {/* Modal de comentario */}
+                <CommentModal
+                    visible={showCommentModal}
+                    onClose={() => setShowCommentModal(false)}
+                    formId={formId}
+                    formTitle={formTitle || 'Trivia completada'}
+                    onCommentAdded={handleCommentAdded}
+                    onNavigateToComments={handleNavigateToComments}
+                />
             </View>
         </View>
     );
@@ -287,6 +351,33 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: 'bold',
     },
+    actionButtons: {
+        marginTop: 20,
+        gap: 10,
+    },
+    commentsButton: {
+        backgroundColor: '#4CAF50',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 12,
+        paddingHorizontal: 25,
+        borderRadius: 25,
+        elevation: 3,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 3,
+        gap: 8,
+    },
+    commentsButtonText: {
+        color: 'white',
+        fontSize: 16,
+        fontWeight: '600',
+    },
+    commentsButtonDisabled: {
+        backgroundColor: '#95a5a6',
+    },
     homeButton: {
         backgroundColor: '#2CC364FF',
         flexDirection: 'row',
@@ -295,7 +386,6 @@ const styles = StyleSheet.create({
         paddingVertical: 15,
         paddingHorizontal: 30,
         borderRadius: 25,
-        marginTop: 20,
         elevation: 3,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },

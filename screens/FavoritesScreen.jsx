@@ -1,56 +1,12 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Image, FlatList, Dimensions, ActivityIndicator, RefreshControl } from 'react-native';
 import PuzzleBackground from '../components/BackgroundSecon'; // Fondo
 import FloatingMenuBar from '../components/FloatingMenuBar'; // Menú flotante
-import TestimonialCard from '../components/TestimonialCard'; // Tarjetas de testimonios
+import ExpandableCommentCard from '../components/ExpandableCommentCard'; // Tarjetas de comentarios expandibles
 import ProfileButton from '../components/ProfileButton'; // Componente de botón de perfil
+import { useAllComments } from '../hooks/useAllComments'; // Hook para obtener comentarios
 
 const { width } = Dimensions.get('window');
-
-const mockTestimonials = [
-    {
-        id: 1,
-        userImage: require('../assets/Vacaciones.jpg'),
-        userName: 'Brayan V',
-        userText: 'Nuestra aplicación redefine la comunicación y el entretenimiento a través de una experiencia intuitiva y vibrante. Diseñada con un enfoque centrado en el usuario, combina funcionalidad, creatividad y accesibilidad, permitiendo chatear, compartir momentos visuales y explorar nuevas posibilidades. El reconocimiento recibido destaca nuestra dedicación a la innovación tecnológica y a brindar herramientas que conecten a las personas de manera auténtica.',
-    },
-    {
-        id: 2,
-        userImage: require('../assets/Vacaciones.jpg'),
-        userName: 'Daniela Pérez',
-        userText: 'Me encanta la experiencia que ofrece este juego.',
-    },
-    {
-        id: 3,
-        userImage: require('../assets/Vacaciones.jpg'),
-        userName: 'Luis Gómez',
-        userText: 'Definitivamente lo recomiendo a todos mis amigos.',
-    },
-    {
-        id: 4,
-        userImage: require('../assets/Vacaciones.jpg'),
-        userName: 'Luis Gómez',
-        userText: 'Definitivamente lo recomiendo a todos mis amigos.',
-    },
-    {
-        id: 5,
-        userImage: require('../assets/Vacaciones.jpg'),
-        userName: 'Luis Gómez',
-        userText: 'Definitivamente lo recomiendo a todos mis amigos.',
-    },
-    {
-        id: 6,
-        userImage: require('../assets/Vacaciones.jpg'),
-        userName: 'Luis Gómez',
-        userText: 'Definitivamente lo recomiendo a todos mis amigos.',
-    },
-    {
-        id: 7,
-        userImage: require('../assets/Vacaciones.jpg'),
-        userName: 'Luis Gómez',
-        userText: 'Definitivamente lo recomiendo a todos mis amigos.',
-    },
-];
 
 const menuItems = [
     { screen: 'Ideas', icon: require('../assets/test.png'), iconType: 'image', color: '#4CAF50' },
@@ -60,7 +16,40 @@ const menuItems = [
     { screen: 'Favorites', icon: require('../assets/historia.png'), iconType: 'image', color: '#E91E63' },
 ];
 
-export default function TestimoniosScreen({ navigation }) {
+export default function FavoritesScreen({ navigation }) {
+    const { 
+        comments, 
+        loading, 
+        refreshing, 
+        error, 
+        refresh, 
+        retry 
+    } = useAllComments({ maxCommentsPerForm: 10, maxForms: 20 });
+
+    const renderCommentItem = ({ item }) => (
+        <ExpandableCommentCard
+            comment={item}
+            style={{ width: width * 0.9 }}
+        />
+    );
+
+    const renderEmptyState = () => (
+        <View style={styles.emptyContainer}>
+            <Image source={require('../assets/historia.png')} style={styles.emptyIcon} />
+            <Text style={styles.emptyTitle}>Aún no hay comentarios</Text>
+            <Text style={styles.emptySubtitle}>
+                Los comentarios de las trivias aparecerán aquí
+            </Text>
+        </View>
+    );
+
+    const renderLoadingState = () => (
+        <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#4CAF50" />
+            <Text style={styles.loadingText}>Cargando comentarios...</Text>
+        </View>
+    );
+
     return (
         <View style={styles.container}>
             {/* Fondo */}
@@ -70,27 +59,33 @@ export default function TestimoniosScreen({ navigation }) {
             <View style={styles.header}>
                 <View style={styles.logoContainer}>
                     <Image source={require('../assets/historia.png')} style={styles.logo} />
-                    <Text style={styles.logoText}>Testimonios</Text>
+                    <Text style={styles.logoText}>Comentarios</Text>
                 </View>
                 <ProfileButton
                     imageSource={require('../assets/Vacaciones.jpg')}
-                    onPress={() => navigation.navigate('UserProfileScreen')} // Navegar al perfil del usuario
+                    onPress={() => navigation.navigate('UserProfileScreen')}
                 />
             </View>
 
-            {/* Contenido desplazable */}
-            <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
-                {mockTestimonials.map((testimonial) => (
-                    <TestimonialCard
-                        key={testimonial.id}
-                        userImage={testimonial.userImage}
-                        userName={testimonial.userName}
-                        userText={testimonial.userText}
-                        onReadMore={() => console.log('Leer más...')}
-                        cardStyle={{ width: width * 0.9 }} // Ajuste de ancho para ocupar el 90% de la pantalla
+            {/* Lista de comentarios */}
+            <FlatList
+                data={comments}
+                renderItem={renderCommentItem}
+                keyExtractor={(item, index) => `${item.formId}-${item.id || index}`}
+                contentContainerStyle={styles.listContainer}
+                showsVerticalScrollIndicator={false}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={refreshing}
+                        onRefresh={refresh}
+                        colors={['#4CAF50']}
+                        tintColor="#4CAF50"
                     />
-                ))}
-            </ScrollView>
+                }
+                ListEmptyComponent={
+                    loading ? renderLoadingState() : renderEmptyState()
+                }
+            />
 
             {/* Menú flotante */}
             <View style={styles.menuContainer}>
@@ -128,10 +123,49 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: '#000',
     },
-    scrollContainer: {
+    listContainer: {
         paddingHorizontal: 20,
         paddingBottom: 100, // Espacio para el menú flotante
-        marginTop: 10, // Asegura un espacio entre el encabezado y el contenido desplazable
+        paddingTop: 10, // Espacio desde el header
+        alignItems: 'center', // Centrar las tarjetas
+    },
+    emptyContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingVertical: 60,
+    },
+    emptyIcon: {
+        width: 64,
+        height: 64,
+        opacity: 0.5,
+        marginBottom: 16,
+    },
+    emptyTitle: {
+        fontSize: 18,
+        fontWeight: '600',
+        color: '#666',
+        marginBottom: 8,
+        textAlign: 'center',
+    },
+    emptySubtitle: {
+        fontSize: 14,
+        color: '#999',
+        textAlign: 'center',
+        paddingHorizontal: 40,
+        lineHeight: 20,
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingVertical: 60,
+    },
+    loadingText: {
+        marginTop: 16,
+        fontSize: 16,
+        color: '#666',
+        textAlign: 'center',
     },
     menuContainer: {
         position: 'absolute',

@@ -13,6 +13,7 @@ export default function QuestionsScreen({ navigation, route }) {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [formToken, setFormToken] = useState(null);
+    const [formTitle, setFormTitle] = useState(null);
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [userAnswers, setUserAnswers] = useState([]);
     const progressAnim = useRef(new Animated.Value(0)).current;
@@ -35,6 +36,9 @@ export default function QuestionsScreen({ navigation, route }) {
             if (response.success && response.data) {
                 const formData = response.data;
                 let questionsData = [];
+
+                // Almacenar el título del formulario
+                setFormTitle(formData.title || formData.name || 'Trivia');
 
                 // Manejar diferentes estructuras de respuesta
                 if (formData.questions && Array.isArray(formData.questions)) {
@@ -221,6 +225,7 @@ export default function QuestionsScreen({ navigation, route }) {
             navigation.navigate("ResultsScreen", { 
                 results: updatedUserAnswers, 
                 formId,
+                formTitle,
                 serverScore: serverResponse?.score || serverResponse?.data?.score || null
             });
         }
@@ -272,6 +277,7 @@ export default function QuestionsScreen({ navigation, route }) {
                         navigation.navigate("ResultsScreen", { 
                             results: finalAnswers, 
                             formId,
+                            formTitle,
                             serverScore: serverResponse?.score || serverResponse?.data?.score || null
                         });
                     });
