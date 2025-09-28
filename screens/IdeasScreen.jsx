@@ -22,19 +22,7 @@ const ProfileImage = ({ source, style, defaultImage }) => {
     );
 };
 
-const mockData = [
-    { name: 'Brayan Villegas', time: '00:42:18', image: require('../assets/Vacaciones.jpg') },
-    { name: 'Daniela Pérez', time: '00:45:23', image: require('../assets/Vacaciones.jpg') },
-    { name: 'Luis Gómez', time: '00:50:12', image: require('../assets/Vacaciones.jpg') },
-    { name: 'Andrea Martínez', time: '00:52:45', image: require('../assets/Vacaciones.jpg') },
-    { name: 'Carlos López', time: '00:55:10', image: require('../assets/Vacaciones.jpg') },
-    { name: 'Ana Montes', time: '00:55:10', image: require('../assets/Vacaciones.jpg') },
-    { name: 'Juan López', time: '00:55:10', image: require('../assets/Vacaciones.jpg') },
-    { name: 'Sandra López', time: '00:55:10', image: require('../assets/Vacaciones.jpg') },
-    { name: 'Jorge López', time: '00:55:10', image: require('../assets/Vacaciones.jpg') },
-    { name: 'Luis Montes', time: '00:55:10', image: require('../assets/Vacaciones.jpg') },
-    { name: 'Carlos López', time: '00:55:10', image: require('../assets/Vacaciones.jpg') },
-];
+
 
 const menuItems = [
     { screen: 'Ideas', icon: require('../assets/test.png'), iconType: 'image', color: '#4CAF50' },
@@ -96,13 +84,12 @@ export default function TopScreen({ navigation, route }) {
                 setScores(formattedScores);
             } else {
                 setError(response.error);
-                // Usar datos mock como fallback
-                setScores(mockData);
+                setScores([]);
             }
         } catch (err) {
             console.error('Error fetching scores:', err);
             setError('Error al cargar puntajes');
-            setScores(mockData);
+            setScores([]);
         } finally {
             setLoading(false);
         }
@@ -132,7 +119,12 @@ export default function TopScreen({ navigation, route }) {
         return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}:${centiseconds.toString().padStart(2, '0')}`;
     };
     
-    const topThree = scores.slice(0, 3);
+    // Asegurar que tenemos al menos 3 elementos para el podio
+    const topThree = [
+        scores[0] || { name: 'Sin datos', correctAnswers: 0, time: '00:00:00', image: require('../assets/Vacaciones.jpg') },
+        scores[1] || { name: 'Sin datos', correctAnswers: 0, time: '00:00:00', image: require('../assets/Vacaciones.jpg') },
+        scores[2] || { name: 'Sin datos', correctAnswers: 0, time: '00:00:00', image: require('../assets/Vacaciones.jpg') }
+    ];
     const remainingList = scores.slice(3);
 
     return (
@@ -160,6 +152,7 @@ export default function TopScreen({ navigation, route }) {
             ) : (
             <ScrollView contentContainerStyle={styles.scrollContainer}>
                 {/* Podio */}
+                {scores.length > 0 ? (
                 <View style={styles.podiumContainer}>
                     <View style={styles.secondPlace}>
                         <ProfileImage 
@@ -195,8 +188,14 @@ export default function TopScreen({ navigation, route }) {
                         <Text style={styles.positionSubTime}>{topThree[2].time}</Text>
                     </View>
                 </View>
+                ) : (
+                <View style={styles.noDataContainer}>
+                    <Text style={styles.noDataText}>No hay datos de puntajes disponibles</Text>
+                </View>
+                )}
 
                 {/* Lista de posiciones restantes */}
+                {remainingList.length > 0 && (
                 <View style={styles.listContainer}>
                     {remainingList.map((item, index) => (
                         <View key={index} style={styles.listItem}>
@@ -214,6 +213,7 @@ export default function TopScreen({ navigation, route }) {
                         </View>
                     ))}
                 </View>
+                )}
             </ScrollView>
             )}
 
@@ -384,5 +384,16 @@ const styles = StyleSheet.create({
         marginTop: 10,
         fontSize: 16,
         color: '#666',
+    },
+    noDataContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingVertical: 50,
+    },
+    noDataText: {
+        fontSize: 16,
+        color: '#666',
+        textAlign: 'center',
     },
 });
