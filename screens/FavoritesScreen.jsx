@@ -107,6 +107,7 @@ const styles = StyleSheet.create({
         padding: 49,
         backgroundColor: 'transparent',
         zIndex: 1,
+        marginTop: -345,
     },
     logoContainer: {
         flexDirection: 'row',
@@ -126,7 +127,7 @@ const styles = StyleSheet.create({
     listContainer: {
         paddingHorizontal: 20,
         paddingBottom: 100, // Espacio para el menú flotante
-        paddingTop: 10, // Espacio desde el header
+        paddingTop: 100, // Espacio desde el header
         alignItems: 'center', // Centrar las tarjetas
     },
     emptyContainer: {
