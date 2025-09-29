@@ -19,7 +19,6 @@ const buttonOptions = [
     { label: "QR", screen: "QRScreen", icon: require("../assets/QR.png") },
     { label: "Monedero", screen: "PaymentScreen", icon: require("../assets/Monedero.png") },
     { label: "Seguridad", screen: "SecurityScreen", icon: require("../assets/Seguridad.png") },
-    { label: "Ajustes", screen: "SettingScreen", icon: require("../assets/Ajustes.png") },
     { label: "Salir", screen: "LoginScreen", icon: require("../assets/Salir.png") },
 ];
 

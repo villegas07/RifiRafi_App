@@ -88,7 +88,11 @@ export default function App() {
         />
         <Stack.Screen
           name="QRScreen"
-          component={QRScreen}
+          component={QRScreen} options={{
+            headerTransparent: true,
+            headerTitle: "",
+            headerTintColor: "#000",
+          }}
         />
         <Stack.Screen
           name="PaymentScreen"
@@ -102,6 +106,11 @@ export default function App() {
         <Stack.Screen
           name="SecurityScreen"
           component={SecurityScreen}
+          options={{
+            headerTransparent: true,
+            headerTitle: "",
+            headerTintColor: "#000",
+          }}
         />
         <Stack.Screen
           name="SettingScreen"
