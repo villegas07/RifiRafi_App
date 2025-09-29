@@ -1,30 +1,14 @@
-import React, { useState } from "react";
+﻿import React from "react";
 import {
     View,
     Text,
     StyleSheet,
-    ScrollView,
-    Image,
-    TouchableOpacity,
-    TextInput,
     Dimensions,
-    KeyboardAvoidingView,
-    Alert,
 } from "react-native";
-import * as ImagePicker from "expo-image-picker";
-import PuzzleBackground from "../components/BackgroundSecon";
+import Backgrounfour from "../components/Backgrounfour";
 import FloatingMenuBar from "../components/FloatingMenuBar";
-import ProfileButton from "../components/ProfileButton";
 
 const { width } = Dimensions.get("window");
-
-const mockUsers = [
-    { id: 1, name: "Brayan Villegas", image: require("../assets/Vacaciones.jpg"), online: true },
-    { id: 2, name: "Daniela Pérez", image: require("../assets/Vacaciones.jpg"), online: false },
-    { id: 3, name: "Luis Gómez", image: require("../assets/Vacaciones.jpg"), online: true },
-    { id: 4, name: "Andrea Martínez", image: require("../assets/Vacaciones.jpg"), online: true },
-    { id: 5, name: "Carlos López", image: require("../assets/Vacaciones.jpg"), online: false },
-];
 
 const menuItems = [
     { screen: "Ideas", icon: require("../assets/test.png"), iconType: "image", color: "#4CAF50" },
@@ -35,325 +19,157 @@ const menuItems = [
 ];
 
 export default function MessagesScreen({ navigation }) {
-    const [selectedUser, setSelectedUser] = useState(null);
-    const [messages, setMessages] = useState([
-        { id: 1, text: "Hola, ¿cómo estás?", sent: true },
-        { id: 2, text: "Bien, ¿y tú?", sent: false },
-    ]);
-    const [messageText, setMessageText] = useState("");
-
-    const closeChat = () => {
-        setSelectedUser(null);
-    };
-
-    const sendMessage = () => {
-        if (messageText.trim()) {
-            setMessages([...messages, { id: messages.length + 1, text: messageText, sent: true }]);
-            setMessageText("");
-        }
-    };
-
-    const openCamera = async () => {
-        const { status } = await ImagePicker.requestCameraPermissionsAsync();
-        if (status !== "granted") {
-            Alert.alert("Permiso denegado", "Se necesita permiso para acceder a la cámara.");
-            return;
-        }
-
-        const result = await ImagePicker.launchCameraAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        });
-
-        if (!result.cancelled) {
-            setMessages([...messages, { id: messages.length + 1, text: "📸 Foto enviada", sent: true }]);
-        }
-    };
-
-    const openGallery = async () => {
-        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-        if (status !== "granted") {
-            Alert.alert("Permiso denegado", "Se necesita permiso para acceder a la galería.");
-            return;
-        }
-
-        const result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        });
-
-        if (!result.cancelled) {
-            setMessages([...messages, { id: messages.length + 1, text: "🖼️ Foto enviada", sent: true }]);
-        }
-    };
-
     return (
-        <KeyboardAvoidingView style={styles.container} behavior="padding">
+        <View style={styles.container}>
             {/* Fondo */}
-            <PuzzleBackground />
-
-            {/* Header */}
-            <View style={styles.headerContainer}>
-                <View style={styles.header}>
-                    <View style={styles.headerLeft}>
-                        <Image source={require("../assets/chat.png")} style={styles.headerIcon} />
-                        <Text style={styles.headerTitle}>Chat</Text>
+            <Backgrounfour />
+            
+            {/* Contenido principal */}
+            <View style={styles.contentContainer}>
+                <View style={styles.messageContainer}>
+                    {/* Icono de chat */}
+                    <Text style={styles.chatIcon}>💬</Text>
+                    
+                    {/* Mensaje principal con icono */}
+                    <View style={styles.titleContainer}>
+                        <Text style={styles.messageEmoji}>💭</Text>
+                        <Text style={styles.title}>Chat en Desarrollo</Text>
                     </View>
-                    <ProfileButton
-                        imageSource={require("../assets/Vacaciones.jpg")}
-                        onPress={() => navigation.navigate("UserProfileScreen")}
-                        style={styles.profileButton}
-                    />
-                </View>
-            </View>
-
-            {/* Scroll de usuarios */}
-            <View style={styles.usersContainer}>
-                <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={styles.userScrollContainer}
-                >
-                    {mockUsers.map((user) => (
-                        <TouchableOpacity
-                            key={user.id}
-                            style={styles.userContainer}
-                            onPress={() => setSelectedUser(user)}
-                        >
-                            <Image source={user.image} style={styles.userImage} />
-                            {user.online && <View style={styles.onlineIndicator} />}
-                            <Text style={styles.userName}>{user.name}</Text>
-                        </TouchableOpacity>
-                    ))}
-                </ScrollView>
-            </View>
-
-            {/* Chat */}
-            {selectedUser && (
-                <View style={styles.chatContainer}>
-                    {/* Header del chat */}
-                    <View style={styles.chatHeader}>
-                        <Image source={selectedUser.image} style={styles.chatUserImage} />
-                        <Text style={styles.chatUserName}>{selectedUser.name}</Text>
-                        <TouchableOpacity style={styles.callButton}>
-                            <Text style={styles.callButtonText}>📞</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.closeButton} onPress={closeChat}>
-                            <Text style={styles.closeButtonText}>❌</Text>
-                        </TouchableOpacity>
-                    </View>
-
-                    {/* Mensajes */}
-                    <ScrollView
-                        style={styles.messagesContainer}
-                        showsVerticalScrollIndicator={false}
-                    >
-                        {messages.map((msg) => (
-                            <View
-                                key={msg.id}
-                                style={
-                                    msg.sent ? styles.messageBubbleSent : styles.messageBubbleReceived
-                                }
-                            >
-                                <Text style={styles.messageText}>{msg.text}</Text>
+                    <Text style={styles.subtitle}>Función no disponible</Text>
+                    
+                    {/* Caja de mensaje */}
+                    <View style={styles.messageBox}>
+                        <Text style={styles.constructionIcon}>🚧</Text>
+                        <Text style={styles.messageText}>
+                            Estamos trabajando en una increíble funcionalidad de chat en tiempo real.
+                        </Text>
+                        <Text style={styles.subMessageText}>
+                            Muy pronto podrás conectar con otros usuarios, compartir ideas, 
+                            enviar fotos y disfrutar de conversaciones instantáneas.
+                        </Text>
+                        
+                        {/* Indicador de progreso */}
+                        <View style={styles.progressContainer}>
+                            <View style={styles.progressBar}>
+                                <View style={styles.progressFill} />
                             </View>
-                        ))}
-                    </ScrollView>
-
-                    {/* Campo de texto */}
-                    <View style={styles.messageInputContainer}>
-                        <TouchableOpacity onPress={openGallery} style={styles.iconButton}>
-                            <Text style={styles.galleryIcon}>🖼️</Text>
-                        </TouchableOpacity>
-                        <TextInput
-                            style={styles.messageInput}
-                            placeholder="Escribe algo..."
-                            value={messageText}
-                            onChangeText={setMessageText}
-                            onSubmitEditing={sendMessage}
-                        />
-                        <TouchableOpacity onPress={sendMessage} style={styles.iconButton}>
-                            <Text style={styles.sendIcon}>➤</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity onPress={openCamera} style={styles.iconButton}>
-                            <Text style={styles.cameraIcon}>📷</Text>
-                        </TouchableOpacity>
+                            <Text style={styles.progressText}>75% Completado</Text>
+                        </View>
                     </View>
                 </View>
-            )}
+            </View>
 
             {/* Menú flotante */}
-            {!selectedUser && (
-                <View style={styles.menuContainer}>
-                    <FloatingMenuBar menuItems={menuItems} />
-                </View>
-            )}
-        </KeyboardAvoidingView>
+            <View style={styles.menuContainer}>
+                <FloatingMenuBar menuItems={menuItems} />
+            </View>
+        </View>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        backgroundColor: 'transparent',
     },
-    headerContainer: {
-        position: "absolute",
-        top: 0,
-        width: "100%",
-        zIndex: 10,
-        backgroundColor: "transparent",
+    contentContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: 30,
+        paddingTop: 60,
+        paddingBottom: 100,
     },
-    header: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        paddingHorizontal: 20,
-        paddingTop: 47,
-        marginLeft: 110
+    messageContainer: {
+        alignItems: 'center',
+        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+        borderRadius: 20,
+        padding: 30,
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 4,
+        },
+        shadowOpacity: 0.15,
+        shadowRadius: 8,
+        elevation: 5,
+        borderWidth: 1,
+        borderColor: 'rgba(255, 255, 255, 0.3)',
     },
-    headerLeft: {
-        flexDirection: "row",
-        alignItems: "center",
+    chatIcon: {
+        fontSize: 120,
+        marginBottom: 20,
     },
-    headerIcon: {
-        width: 50,
-        height: 50,
+    titleContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 5,
+    },
+    messageEmoji: {
+        fontSize: 32,
         marginRight: 10,
     },
-    headerTitle: {
+    title: {
+        fontSize: 28,
+        fontWeight: 'bold',
+        color: '#2c3e50',
+        textAlign: 'center',
+    },
+    subtitle: {
         fontSize: 18,
-        fontWeight: "bold",
+        color: '#7b8794',
+        marginBottom: 30,
+        textAlign: 'center',
     },
-    profileButton: {
-        width: 50,
-        height: 50,
+    messageBox: {
+        alignItems: 'center',
+        paddingTop: 20,
+        borderTopWidth: 1,
+        borderTopColor: 'rgba(123, 135, 148, 0.2)',
+        width: '100%',
     },
-    usersContainer: {
-        position: "absolute",
-        top: 120,
-        width: "100%",
-        height: 100,
-        zIndex: 5,
-        backgroundColor: "transparent",
-    },
-    userScrollContainer: {
-        paddingVertical: 10,
-        alignItems: "center",
-    },
-    userContainer: {
-        alignItems: "center",
-        marginHorizontal: 10,
-    },
-    userImage: {
-        width: 60,
-        height: 60,
-        borderRadius: 30,
-    },
-    onlineIndicator: {
-        position: "absolute",
-        bottom: 70,
-        right: 10,
-        width: 10,
-        left: 53,
-        height: 10,
-        backgroundColor: "green",
-        borderRadius: 5,
-    },
-    userName: {
-        marginTop: 5,
-        fontSize: 12,
-        textAlign: "center",
-    },
-    chatContainer: {
-        flex: 1,
-        marginTop: -20,
-        backgroundColor: "#FFF",
-        borderTopLeftRadius: 20,
-        borderTopRightRadius: 20,
-        padding: 10,
-    },
-    chatHeader: {
-        flexDirection: "row",
-        alignItems: "center",
-        marginBottom: 10,
-    },
-    chatUserImage: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-    },
-    chatUserName: {
-        flex: 1,
-        marginLeft: 10,
-        fontWeight: "bold",
-    },
-    callButton: {
-        backgroundColor: "#4CAF50",
-        borderRadius: 20,
-        padding: 10,
-    },
-    callButtonText: {
-        color: "#FFF",
-        fontWeight: "bold",
-    },
-    closeButton: {
-        marginLeft: 10,
-    },
-    closeButtonText: {
-        fontSize: 18,
-        color: "red",
-    },
-    messagesContainer: {
-        flex: 1,
-    },
-    messageBubbleSent: {
-        alignSelf: "flex-end",
-        backgroundColor: "#4CAF50",
-        padding: 10,
-        borderRadius: 20,
-        marginVertical: 5,
-        maxWidth: "70%",
-    },
-    messageBubbleReceived: {
-        alignSelf: "flex-start",
-        backgroundColor: "#CCC",
-        padding: 10,
-        borderRadius: 20,
-        marginVertical: 5,
-        maxWidth: "70%",
+    constructionIcon: {
+        fontSize: 32,
+        marginBottom: 15,
     },
     messageText: {
-        color: "#FFF",
+        fontSize: 16,
+        color: '#5d6d7e',
+        textAlign: 'center',
+        lineHeight: 24,
+        marginBottom: 10,
+        fontWeight: '600',
     },
-    messageInputContainer: {
-        flexDirection: "row",
-        alignItems: "center",
-        padding: 10,
-        backgroundColor: "#FFD700",
-        borderRadius: 30,
-        elevation: 3,
+    subMessageText: {
+        fontSize: 14,
+        color: '#7b8794',
+        textAlign: 'center',
+        lineHeight: 22,
+        paddingHorizontal: 10,
+        marginBottom: 20,
     },
-    messageInput: {
-        flex: 1,
-        padding: 10,
-        borderRadius: 20,
-        backgroundColor: "#EEE",
+    progressContainer: {
+        alignItems: 'center',
+        width: '100%',
     },
-    iconButton: {
-        marginHorizontal: 5,
+    progressBar: {
+        width: width * 0.5,
+        height: 8,
+        backgroundColor: 'rgba(123, 135, 148, 0.2)',
+        borderRadius: 4,
+        overflow: 'hidden',
+        marginBottom: 10,
     },
-    emojiIcon: {
-        fontSize: 24,
+    progressFill: {
+        width: '75%',
+        height: '100%',
+        backgroundColor: '#4CAF50',
+        borderRadius: 4,
     },
-    sendIcon: {
-        fontSize: 20,
-        color: "#4CAF50",
-    },
-    voiceIcon: {
-        fontSize: 20,
-        color: "#03A9F4",
-    },
-    cameraIcon: {
-        fontSize: 20,
-        color: "#FFC107",
+    progressText: {
+        fontSize: 14,
+        color: '#4CAF50',
+        fontWeight: '600',
     },
     menuContainer: {
         position: "absolute",
