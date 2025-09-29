@@ -1,12 +1,11 @@
 {
   "expo": {
-    "name": "rifi-rafi-App",
+    "name": "RIFI-RAFI",
     "slug": "rifi-rafi-App",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/Icono01.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -17,19 +16,25 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/Icono01.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true,
-      "package": "com.ingbrayan.rifirafiApp"
+      "edgeToEdgeEnabled": false,
+      "package": "com.ingbrayan.rifirafiApp",
+      "compileSdkVersion": 34,
+      "targetSdkVersion": 34,
+      "buildToolsVersion": "34.0.0"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/Icono01.png"
     },
     "extra": {
       "eas": {
         "projectId": "cb60e862-baa2-4e89-8c30-c16dc345a199"
       }
-    }
+    },
+    "plugins": [
+      "expo-font"
+    ]
   }
 }

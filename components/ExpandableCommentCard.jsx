@@ -3,13 +3,6 @@ import { View, Text, StyleSheet, TouchableOpacity, Animated, LayoutAnimation, Pl
 import { Ionicons } from '@expo/vector-icons';
 import Avatar from './Avatar';
 
-// Habilitar LayoutAnimation en Android
-if (Platform.OS === 'android') {
-    if (UIManager.setLayoutAnimationEnabledExperimental) {
-        UIManager.setLayoutAnimationEnabledExperimental(true);
-    }
-}
-
 export default function ExpandableCommentCard({ comment, style }) {
     const [isExpanded, setIsExpanded] = useState(false);
     

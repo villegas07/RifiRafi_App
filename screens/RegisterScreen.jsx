@@ -250,7 +250,7 @@ export default function RegisterScreen({ navigation }) {
             onPress={() => setPasswordVisible(!passwordVisible)}
           >
             <AntDesign
-              name={passwordVisible ? "eye" : "eyeo"}
+              name={passwordVisible ? "eye" : "eye-invisible"}
               size={20}
               color="gray"
             />
@@ -274,7 +274,7 @@ export default function RegisterScreen({ navigation }) {
             onPress={() => setConfirmPasswordVisible(!confirmPasswordVisible)}
           >
             <AntDesign
-              name={confirmPasswordVisible ? "eye" : "eyeo"}
+              name={confirmPasswordVisible ? "eye" : "eye-invisible"}
               size={20}
               color="gray"
             />

@@ -33,7 +33,7 @@ export default function CustomDropdown({ data, placeholder, onSelect }) {
                     {selectedValue || placeholder || "Selecciona una opción"}
                 </Text>
                 <AntDesign
-                    name={isVisible ? "caretup" : "caretdown"}
+                    name={isVisible ? "up" : "down"}
                     size={16}
                     color="#333"
                 />
