@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { StatusBar } from 'expo-status-bar';
 import { AuthProvider } from './context/AuthContext';
 import SessionManager from './components/SessionManager';
 import SplashScreen from './screens/SplashScreen'; // Importa la pantalla de precarga
@@ -29,6 +30,7 @@ const Stack = createNativeStackNavigator();
 export default function App() {
   return (
     <AuthProvider>
+      <StatusBar style="dark" translucent={true} backgroundColor="transparent" />
       <NavigationContainer>
       <Stack.Navigator initialRouteName="Splash">
         {/* Pantalla de precarga */}

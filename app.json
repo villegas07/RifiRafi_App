@@ -19,11 +19,14 @@
         "foregroundImage": "./assets/Icono01.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": false,
+      "edgeToEdgeEnabled": true,
       "package": "com.ingbrayan.rifirafiApp",
       "compileSdkVersion": 34,
       "targetSdkVersion": 34,
-      "buildToolsVersion": "34.0.0"
+      "buildToolsVersion": "34.0.0",
+      "statusBarStyle": "dark-content",
+      "statusBarTranslucent": true,
+      "statusBarBackgroundColor": "transparent"
     },
     "web": {
       "favicon": "./assets/Icono01.png"
