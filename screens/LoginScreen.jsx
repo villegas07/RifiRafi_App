@@ -78,6 +78,7 @@ export default function LoginScreen({ navigation }) {
 
         <TextInput
           placeholder="Correo Electrónico"
+          placeholderTextColor="#999999"
           style={styles.TexInput}
           value={email}
           onChangeText={setEmail}
@@ -87,6 +88,7 @@ export default function LoginScreen({ navigation }) {
         <View style={styles.passwordContainer}>
           <TextInput
             placeholder="Password"
+            placeholderTextColor="#999999"
             style={styles.passwordInput}
             secureTextEntry={!passwordVisible}
             value={password}

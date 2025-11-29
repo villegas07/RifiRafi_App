@@ -22,6 +22,7 @@ export default function CustomRechargeOption({ onChange }) {
                     value={inputValue}
                     onChangeText={handleInputChange}
                     placeholder="0"
+                    placeholderTextColor="#999999"
                 />
                 <Text style={styles.equalsText}>=</Text>
                 <Text style={styles.amountText}>

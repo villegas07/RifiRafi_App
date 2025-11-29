@@ -67,6 +67,82 @@ export default function RegisterScreen({ navigation }) {
     { label: "Pasaporte", value: "Pasaporte" },
   ];
 
+  // Función para manejar errores específicos de registro
+  const handleRegistrationError = (errorMessage, responseData) => {
+    const lowerError = errorMessage.toLowerCase();
+    
+    // Verificar si es el error específico del servidor (409 - Conflict)
+    if (lowerError.includes('usuario ya existe') || 
+        lowerError.includes('correo electrónico') || 
+        lowerError.includes('nombre de usuario') || 
+        lowerError.includes('teléfono o dni') ||
+        (responseData && responseData.statusCode === 409)) {
+      
+      Alert.alert(
+        "⚠️ Datos ya registrados",
+        "Ya existe una cuenta con alguno de los datos que ingresaste (email, nombre de usuario, teléfono o documento). Por favor verifica tu información:\n\n• ¿Ya tienes una cuenta? Intenta iniciar sesión\n• Revisa que no hayas usado estos datos antes\n• Cambia el nombre de usuario si es necesario",
+        [
+          { text: "Revisar datos", style: "cancel" },
+          { text: "Ir a Login", onPress: () => navigation.navigate("Login"), style: "default" }
+        ]
+      );
+      setErrorMessage("Los datos ya están registrados en el sistema");
+    } else if (lowerError.includes('username') && (lowerError.includes('already') || lowerError.includes('existe') || lowerError.includes('uso'))) {
+      Alert.alert(
+        "👤 Usuario no disponible",
+        `El nombre de usuario "${username}" ya está en uso. Por favor, elige otro nombre de usuario.`,
+        [{ text: "Entendido", style: "default" }]
+      );
+      setErrorMessage("El nombre de usuario ya está en uso");
+    } else if (lowerError.includes('email') && (lowerError.includes('already') || lowerError.includes('existe') || lowerError.includes('uso'))) {
+      Alert.alert(
+        "📧 Email ya registrado",
+        `El email "${email}" ya está registrado. ¿Ya tienes una cuenta? Intenta iniciar sesión.`,
+        [
+          { text: "Intentar otro email", style: "cancel" },
+          { text: "Ir a Login", onPress: () => navigation.navigate("Login"), style: "default" }
+        ]
+      );
+      setErrorMessage("El email ya está registrado");
+    } else if (lowerError.includes('dni') || lowerError.includes('documento')) {
+      Alert.alert(
+        "🆔 Documento ya registrado",
+        `El número de documento "${documentNumber}" ya está registrado en el sistema.`,
+        [{ text: "Verificar datos", style: "default" }]
+      );
+      setErrorMessage("El número de documento ya está registrado");
+    } else if (lowerError.includes('phone') || lowerError.includes('teléfono') || lowerError.includes('telefono')) {
+      Alert.alert(
+        "📱 Teléfono ya registrado",
+        `El número de teléfono "${phoneNumber}" ya está registrado. Verifica que el número sea correcto.`,
+        [{ text: "Verificar número", style: "default" }]
+      );
+      setErrorMessage("El número de teléfono ya está registrado");
+    } else if (lowerError.includes('password') || lowerError.includes('contraseña')) {
+      Alert.alert(
+        "🔒 Contraseña inválida",
+        "La contraseña no cumple con los requisitos de seguridad. Debe tener al menos 8 caracteres.",
+        [{ text: "Corregir", style: "default" }]
+      );
+      setErrorMessage("La contraseña no cumple los requisitos");
+    } else if (lowerError.includes('validation') || lowerError.includes('invalid')) {
+      Alert.alert(
+        "⚠️ Datos inválidos",
+        "Algunos de los datos ingresados no son válidos. Verifica la información e intenta nuevamente.",
+        [{ text: "Revisar datos", style: "default" }]
+      );
+      setErrorMessage("Verifica que todos los datos sean válidos");
+    } else {
+      // Error genérico
+      Alert.alert(
+        "❌ Error en el registro",
+        `Ha ocurrido un error: ${errorMessage}. Por favor, intenta nuevamente.`,
+        [{ text: "Reintentar", style: "default" }]
+      );
+      setErrorMessage(errorMessage);
+    }
+  };
+
   // Función para manejar el registro (MODIFICADA)
   const handleSubmit = async () => {
     // Validaciones básicas (igual que antes)
@@ -113,14 +189,25 @@ export default function RegisterScreen({ navigation }) {
       
       if (response.success) {
         Alert.alert(
-          "Registro exitoso", 
-          "Tu cuenta ha sido creada correctamente",
-          [{ text: "OK", onPress: () => navigation.navigate("Login") }]
+          "🎉 ¡Registro exitoso!", 
+          "Tu cuenta ha sido creada correctamente. Ya puedes iniciar sesión.",
+          [{ 
+            text: "Iniciar Sesión", 
+            onPress: () => navigation.navigate("Login"),
+            style: "default"
+          }],
+          { cancelable: false }
         );
       } else {
-        setErrorMessage(response.error || "Error en el registro");
+        // Manejar diferentes tipos de errores específicos
+        handleRegistrationError(response.error || "Error en el registro", response.data);
       }
     } catch (error) {
+      Alert.alert(
+        "❌ Error de Conexión",
+        "No se pudo conectar con el servidor. Verifica tu conexión a internet e intenta nuevamente.",
+        [{ text: "Entendido", style: "default" }]
+      );
       setErrorMessage("Error de red o servidor no disponible");
     } finally {
       setIsLoading(false);
@@ -149,12 +236,14 @@ export default function RegisterScreen({ navigation }) {
         {/* Campos del formulario (igual que antes) */}
         <TextInput
           placeholder="Nombres"
+          placeholderTextColor="#999999"
           style={styles.TexInput}
           value={firstName}
           onChangeText={setFirstName}
         />
         <TextInput
           placeholder="Apellidos"
+          placeholderTextColor="#999999"
           style={styles.TexInput}
           value={lastName}
           onChangeText={setLastName}
@@ -201,6 +290,7 @@ export default function RegisterScreen({ navigation }) {
 
         <TextInput
           placeholder="N° Documento"
+          placeholderTextColor="#999999"
           style={styles.TexInput}
           keyboardType="numeric"
           value={documentNumber}
@@ -208,6 +298,7 @@ export default function RegisterScreen({ navigation }) {
         />
         <TextInput
           placeholder="Teléfono"
+          placeholderTextColor="#999999"
           style={styles.TexInput}
           keyboardType="numeric"
           value={phoneNumber}
@@ -215,6 +306,7 @@ export default function RegisterScreen({ navigation }) {
         />
         <TextInput
           placeholder="Correo Electrónico"
+          placeholderTextColor="#999999"
           style={styles.TexInput}
           keyboardType="email-address"
           value={email}
@@ -222,12 +314,14 @@ export default function RegisterScreen({ navigation }) {
         />
         <TextInput
           placeholder="Nombre de Usuario"
+          placeholderTextColor="#999999"
           style={styles.TexInput}
           value={username}
           onChangeText={setUsername}
         />
         <TextInput
           placeholder="Nombre a mostrar"
+          placeholderTextColor="#999999"
           style={styles.TexInput}
           value={displayName}
           onChangeText={setDisplayName}
@@ -237,6 +331,7 @@ export default function RegisterScreen({ navigation }) {
         <View style={{ position: "relative", width: "100%" }}>
           <TextInput
             placeholder="Contraseña"
+            placeholderTextColor="#999999"
             style={[
               styles.TexInput,
               password && !isPasswordMatch && { borderColor: "red" },
@@ -261,6 +356,7 @@ export default function RegisterScreen({ navigation }) {
         <View style={{ position: "relative", width: "100%" }}>
           <TextInput
             placeholder="Confirmar Contraseña"
+            placeholderTextColor="#999999"
             style={[
               styles.TexInput,
               confirmPassword && !isPasswordMatch && { borderColor: "red" },

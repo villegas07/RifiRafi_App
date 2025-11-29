@@ -121,9 +121,9 @@ export default function TopScreen({ navigation, route }) {
     
     // Asegurar que tenemos al menos 3 elementos para el podio
     const topThree = [
-        scores[0] || { name: 'Sin datos', correctAnswers: 0, time: '00:00:00', image: require('../assets/Vacaciones.jpg') },
-        scores[1] || { name: 'Sin datos', correctAnswers: 0, time: '00:00:00', image: require('../assets/Vacaciones.jpg') },
-        scores[2] || { name: 'Sin datos', correctAnswers: 0, time: '00:00:00', image: require('../assets/Vacaciones.jpg') }
+        scores[0] || { name: 'Sin datos', correctAnswers: 0, time: '00:00:00', image: require('../assets/userIcon.png') },
+        scores[1] || { name: 'Sin datos', correctAnswers: 0, time: '00:00:00', image: require('../assets/userIcon.png') },
+        scores[2] || { name: 'Sin datos', correctAnswers: 0, time: '00:00:00', image: require('../assets/userIcon.png') }
     ];
     const remainingList = scores.slice(3);
 

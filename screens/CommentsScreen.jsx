@@ -239,7 +239,7 @@ export default function CommentsScreen({ navigation, route }) {
                 <TextInput
                     style={styles.commentInput}
                     placeholder="Escribe tu comentario aquí..."
-                    placeholderTextColor="#999"
+                    placeholderTextColor="#999999"
                     value={comment}
                     onChangeText={setComment}
                     multiline

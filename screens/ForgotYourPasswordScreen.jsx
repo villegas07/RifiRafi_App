@@ -64,6 +64,7 @@ export default function ForgotYourPasswordScreen({ navigation }) {
 
         <TextInput
           placeholder="Correo Electrónico"
+          placeholderTextColor="#999999"
           style={styles.textInput}
           value={email}
           onChangeText={setEmail}

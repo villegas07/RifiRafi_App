@@ -45,6 +45,22 @@ export async function register({ username, displayName, firstName, lastName, cou
     return { success: !!response.data.success, data: response.data };
   } catch (error) {
     console.error('Register error:', error);
+    
+    // Si hay una respuesta del servidor con error específico
+    if (error.response && error.response.data) {
+      const serverError = error.response.data;
+      console.log('Register:', false, error.response.status, serverError);
+      
+      return { 
+        success: false, 
+        error: serverError.message || serverError.error || 'Error en el servidor',
+        data: { 
+          statusCode: error.response.status,
+          ...serverError 
+        }
+      };
+    }
+    
     return { success: false, error: error.message || 'An error occurred' };
   }
 }

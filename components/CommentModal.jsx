@@ -173,6 +173,7 @@ export default function CommentModal({
                                 <TextInput
                                     style={styles.textInput}
                                     placeholder="Escribe tu comentario aquí..."
+                                    placeholderTextColor="#999999"
                                     value={comment}
                                     onChangeText={setComment}
                                     multiline={true}

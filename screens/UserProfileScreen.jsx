@@ -29,7 +29,7 @@ export default function PerfilScreen({ navigation }) {
 
     useEffect(() => {
         if (user) {
-            setProfileImage(user.picture ? { uri: user.picture } : require("../assets/Vacaciones.jpg"));
+            setProfileImage(user.picture ? { uri: user.picture } : require("../assets/userIcon.png"));
             setUserName(user.name || 'Usuario');
         }
     }, [user]);
@@ -52,10 +52,10 @@ export default function PerfilScreen({ navigation }) {
             if (!result.canceled) {
                 const imageUri = result.assets[0].uri;
                 setProfileImage({ uri: imageUri });
-                
+
                 Alert.alert("Actualizando", "Subiendo imagen...");
                 const updateResult = await updateProfilePicture(imageUri);
-                
+
                 if (updateResult.success) {
                     Alert.alert("Éxito", "Imagen actualizada correctamente");
                 } else {

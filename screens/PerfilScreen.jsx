@@ -188,6 +188,7 @@ export default function UserProfileScreen() {
                                 onEndEditing={() => confirmChanges("age")}
                                 keyboardType="numeric" 
                                 placeholder="Ingresa tu edad"
+                                placeholderTextColor="#999999"
                             />
 
                             <Text style={styles.label}>N° Identificación</Text>
@@ -216,6 +217,7 @@ export default function UserProfileScreen() {
                                 onEndEditing={() => confirmChanges("phone")}
                                 keyboardType="numeric"
                                 placeholder="Ingresa tu número de teléfono"
+                                placeholderTextColor="#999999"
                             />
                         </View>
                     </View>
