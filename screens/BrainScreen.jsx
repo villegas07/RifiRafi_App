@@ -31,7 +31,7 @@ export default function GymMentalScreen({ navigation }) {
                     style={styles.profileButton}
                 />
             </View>
-            <Text style={styles.title}>¡Es tu momento de ganas!</Text>
+            <Text style={styles.title}>¡Es tu momento de ganar!</Text>
 
             {/* Promotion Slider */}
             <PromotionSlider
